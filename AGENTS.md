@@ -36,5 +36,7 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 0 only.
-Do not add Vite, React, Phaser, runtime code, package.json, or game implementation in this PR.
+Phase 1.
+Vite + React + TypeScript forge shell is now available.
+Runtime placeholder files exist under `src/runtime/`.
+Do not add Phaser, GameRecipe validator, Kit Registry, Assembler, or Puni Sumo implementation in this phase.

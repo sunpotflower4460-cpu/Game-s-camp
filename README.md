@@ -21,3 +21,25 @@ However, this PR is **Phase 0 foundation only**:
 - No package.json yet.
 
 This phase only establishes shared rules and documents so AI can work consistently in later phases.
+
+## Local development
+
+```bash
+npm install
+npm run dev
+```
+
+Other available commands:
+
+```bash
+npm run build       # type-check and build for production
+npm run preview     # preview the production build locally
+npm run typecheck   # type-check without emitting files
+```
+
+## Current implementation phase
+
+Phase 1 adds the minimal Vite + React + TypeScript forge shell.
+
+This is not a game implementation yet.
+Phaser, GameRecipe validation, Kit Registry, Assembler, and Puni Sumo are intentionally not included in this phase.
