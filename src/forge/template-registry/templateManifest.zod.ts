@@ -15,6 +15,7 @@ export const templateSlotSchema = z.object({
   ]),
   required: z.boolean(),
   description: z.string().min(1),
+  requiresProvides: z.array(z.string()).default([]),
 })
 
 export const templateManifestSchema = z

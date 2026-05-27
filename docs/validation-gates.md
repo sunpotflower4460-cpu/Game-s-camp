@@ -63,3 +63,11 @@ Checks that require human playtest or creative judgment.
 - play time feels right
 - tutorial or guidance is sufficient
 - the game feels fun enough for MVP
+
+## Semantic assignment validation
+
+Assembler Plan validation must fail when a Kit does not satisfy the slot's required capabilities.
+Example:
+- `resultUi` requires `resultScreen`
+- `ui.roundTimer.v1` provides `roundTimerHud`
+- This assignment must fail.

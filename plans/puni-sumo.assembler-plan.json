@@ -12,6 +12,11 @@
       "slotName": "playerController",
       "category": "controller",
       "required": true,
+      "requiresProvides": [],
+      "assignedKitProvides": [
+        "playerMovement",
+        "pushForce"
+      ],
       "kitId": "controller.puniPush.v1",
       "manifestPath": "kits/controllers/puni-push/kit.manifest.json"
     },
@@ -19,6 +24,10 @@
       "slotName": "mainStage",
       "category": "stage",
       "required": true,
+      "requiresProvides": [],
+      "assignedKitProvides": [
+        "arenaBounds"
+      ],
       "kitId": "stage.circularArenaForest.v1",
       "manifestPath": "kits/stages/circular-arena-forest/kit.manifest.json"
     },
@@ -26,6 +35,10 @@
       "slotName": "winLoseRule",
       "category": "rule",
       "required": true,
+      "requiresProvides": [],
+      "assignedKitProvides": [
+        "ringOutJudge"
+      ],
       "kitId": "rule.ringOut.v1",
       "manifestPath": "kits/rules/ring-out/kit.manifest.json"
     },
@@ -33,30 +46,52 @@
       "slotName": "resultUi",
       "category": "ui",
       "required": true,
-      "kitId": "ui.roundTimer.v1",
-      "manifestPath": "kits/ui/round-timer/kit.manifest.json"
+      "requiresProvides": [
+        "resultScreen"
+      ],
+      "assignedKitProvides": [
+        "resultScreen"
+      ],
+      "kitId": "ui.resultScreen.v1",
+      "manifestPath": "kits/ui/result-screen/kit.manifest.json"
+    },
+    {
+      "slotName": "mainCamera",
+      "category": "camera",
+      "required": true,
+      "requiresProvides": [
+        "isometricCamera"
+      ],
+      "assignedKitProvides": [
+        "isometricCamera"
+      ],
+      "kitId": "camera.isometricSoft.v1",
+      "manifestPath": "kits/cameras/isometric-soft/kit.manifest.json"
     }
   ],
   "optionalAssignments": [
     {
-      "slotName": "mainCamera",
-      "category": "camera",
-      "required": false,
-      "kitId": "camera.isometricSoft.v1",
-      "manifestPath": "kits/cameras/isometric-soft/kit.manifest.json"
-    },
-    {
       "slotName": "timerUi",
       "category": "ui",
       "required": false,
-      "kitId": "ui.resultScreen.v1",
-      "manifestPath": "kits/ui/result-screen/kit.manifest.json"
+      "requiresProvides": [
+        "roundTimerHud"
+      ],
+      "assignedKitProvides": [
+        "roundTimerHud"
+      ],
+      "kitId": "ui.roundTimer.v1",
+      "manifestPath": "kits/ui/round-timer/kit.manifest.json"
     }
   ],
   "unresolvedRequiredSlots": [],
   "notes": [
-    "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits).",
-    "Slot \"resultUi\" (ui) selected ui.roundTimer.v1; other candidates: ui.resultScreen.v1",
-    "Slot \"timerUi\" (ui) selected ui.resultScreen.v1; other candidates: ui.roundTimer.v1"
+    "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits), matching both slot category and required provides.",
+    "Slot \"playerController\" assigned controller.puniPush.v1 by category \"controller\".",
+    "Slot \"mainStage\" assigned stage.circularArenaForest.v1 by category \"stage\".",
+    "Slot \"winLoseRule\" assigned rule.ringOut.v1 by category \"rule\".",
+    "Slot \"resultUi\" assigned ui.resultScreen.v1 by category \"ui\" and requires provides [resultScreen].",
+    "Slot \"mainCamera\" assigned camera.isometricSoft.v1 by category \"camera\" and requires provides [isometricCamera].",
+    "Slot \"timerUi\" assigned ui.roundTimer.v1 by category \"ui\" and requires provides [roundTimerHud]."
   ]
 }

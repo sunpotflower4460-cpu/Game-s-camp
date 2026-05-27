@@ -6,6 +6,7 @@ export type AssemblerPlanIssue = {
     | "unresolved_required_slot"
     | "duplicate_required_assignment"
     | "missing_plan_identity"
+    | "semantic_assignment_mismatch"
   message: string
 }
 
@@ -51,6 +52,24 @@ export function validateAssemblerPlan(plan: AssemblerPlan): AssemblerPlanIssue[]
       severity: "error",
       type: "duplicate_required_assignment",
       message: `Required assignments contain duplicate kitId: ${kitId}`,
+    })
+  }
+
+  for (const assignment of [...plan.requiredAssignments, ...plan.optionalAssignments]) {
+    const requiredProvides = assignment.requiresProvides ?? []
+    const assignedKitProvides = assignment.assignedKitProvides ?? []
+    const missingProvides = requiredProvides.filter(
+      (requiredProvide) => !assignedKitProvides.includes(requiredProvide),
+    )
+
+    if (missingProvides.length === 0) {
+      continue
+    }
+
+    issues.push({
+      severity: "error",
+      type: "semantic_assignment_mismatch",
+      message: `Slot "${assignment.slotName}" requires provides ${JSON.stringify(requiredProvides)}, but assigned kit "${assignment.kitId}" provides ${JSON.stringify(assignedKitProvides)}.`,
     })
   }
 

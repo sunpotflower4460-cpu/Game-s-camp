@@ -9,23 +9,39 @@ function PreviewShell() {
       </div>
 
       <div className="future-slots">
-        <h3>Future slots</h3>
+        <h3>Forge status</h3>
         <ul>
           <li>
             <span className="slot-label">GameRecipe</span>
-            <span className="slot-status">— schema only (Phase 2)</span>
+            <span className="slot-status">— validated</span>
           </li>
           <li>
             <span className="slot-label">Kit Registry</span>
-            <span className="slot-status">— not connected</span>
+            <span className="slot-status">— available</span>
           </li>
           <li>
-            <span className="slot-label">Template Assembler</span>
-            <span className="slot-status">— not connected</span>
+            <span className="slot-label">Template Registry</span>
+            <span className="slot-status">— available</span>
           </li>
           <li>
-            <span className="slot-label">Validation Report</span>
-            <span className="slot-status">— not connected</span>
+            <span className="slot-label">Assembler Plan</span>
+            <span className="slot-status">— available</span>
+          </li>
+          <li>
+            <span className="slot-label">Dry-run Renderer</span>
+            <span className="slot-status">— available</span>
+          </li>
+          <li>
+            <span className="slot-label">Generated placeholder output</span>
+            <span className="slot-status">— available</span>
+          </li>
+          <li>
+            <span className="slot-label">Runtime wiring</span>
+            <span className="slot-status">— not yet</span>
+          </li>
+          <li>
+            <span className="slot-label">Playable Phaser game</span>
+            <span className="slot-status">— not yet</span>
           </li>
         </ul>
       </div>

@@ -12,10 +12,15 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 5 adds a safe template renderer dry-run on top of the Phase 4.5 Assembler Plan.
+Phase 5.1 adds semantic assignment cleanup on top of the Phase 5 safe template renderer dry-run.
 
 This is not a game implementation yet.
 Phaser and playable Puni Sumo gameplay are intentionally not included in this phase.
+
+## Phase 5.1 semantic assignment cleanup
+
+Phase 5.1 fixes semantic Kit-to-slot assignment.
+The Assembler now uses Template slot `requiresProvides` and Kit manifest `provides` to avoid category-only mismatches.
 
 ## Local development
 

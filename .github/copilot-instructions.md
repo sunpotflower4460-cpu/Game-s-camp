@@ -11,11 +11,11 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 5.
+- This PR is Phase 5.1.
 - GameRecipe, KitManifest, and TemplateManifest schema/validator foundations are available.
 - Kit Registry and Template Registry loading/validation are in scope.
 - Recipe compatibility checks include template registry existence checks.
-- Assembler plan creation/validation/explanation and `plans/` design artifacts are in scope.
+- Assembler semantic slot assignment (`requiresProvides` / `provides`) and plan creation/validation/explanation are in scope.
 - Runtime-neutral Kit skeleton files under `src/kits/` and template placeholders under `templates/mini-action/files/` are in scope.
 - Safe template dry-run rendering into `generated/games/puni-sumo/` is in scope.
 - Do not add Phaser yet.

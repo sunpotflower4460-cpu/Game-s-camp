@@ -8,13 +8,17 @@ Genre: mini_action
 - playerController (controller) -> controller.puniPush.v1
 - mainStage (stage) -> stage.circularArenaForest.v1
 - winLoseRule (rule) -> rule.ringOut.v1
-- resultUi (ui) -> ui.roundTimer.v1
+- resultUi (ui, requires: resultScreen) -> ui.resultScreen.v1
+- mainCamera (camera, requires: isometricCamera) -> camera.isometricSoft.v1
 
 ## Optional assignments
-- mainCamera (camera) -> camera.isometricSoft.v1
-- timerUi (ui) -> ui.resultScreen.v1
+- timerUi (ui, requires: roundTimerHud) -> ui.roundTimer.v1
 
 ## Notes
-- Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits).
-- Slot "resultUi" (ui) selected ui.roundTimer.v1; other candidates: ui.resultScreen.v1
-- Slot "timerUi" (ui) selected ui.resultScreen.v1; other candidates: ui.roundTimer.v1
+- Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits), matching both slot category and required provides.
+- Slot "playerController" assigned controller.puniPush.v1 by category "controller".
+- Slot "mainStage" assigned stage.circularArenaForest.v1 by category "stage".
+- Slot "winLoseRule" assigned rule.ringOut.v1 by category "rule".
+- Slot "resultUi" assigned ui.resultScreen.v1 by category "ui" and requires provides [resultScreen].
+- Slot "mainCamera" assigned camera.isometricSoft.v1 by category "camera" and requires provides [isometricCamera].
+- Slot "timerUi" assigned ui.roundTimer.v1 by category "ui" and requires provides [roundTimerHud].

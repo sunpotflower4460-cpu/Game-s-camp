@@ -2,6 +2,8 @@ export type AssemblerSlotAssignment = {
   slotName: string
   category: string
   required: boolean
+  requiresProvides: string[]
+  assignedKitProvides: string[]
   kitId: string
   manifestPath: string
 }

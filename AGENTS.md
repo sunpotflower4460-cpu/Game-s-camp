@@ -36,22 +36,20 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 5: Safe template renderer dry-run.
+Phase 5.1: Semantic assignment and UI status cleanup.
 Allowed in this phase:
-- Assembler Plan types
-- Assembler Plan creation
-- Assembler Plan validation
-- Assembler Plan explanation
-- `plans/` design output
-- Safe placeholder token replacement from `.tpl`
-- `generated/games/puni-sumo/` dry-run output
-- Render report output under `generated/games/puni-sumo/`
-- CI wiring for plan creation
+- UI status text updates
+- Template slot `requiresProvides`
+- Kit manifest `provides` cleanup
+- Assembler semantic slot assignment
+- Assembler Plan validation hardening
+- regenerated plans/
+- regenerated generated/
 
 Not allowed in this phase:
 - Phaser
 - playable Puni Sumo
-- runtime wiring for generated files
+- runtime wiring
 - custom game output
 - Playwright e2e tests
-- actual scene runtime
+- dependency upgrade refactors

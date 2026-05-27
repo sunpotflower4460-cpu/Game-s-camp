@@ -28,21 +28,24 @@
       "name": "resultUi",
       "category": "ui",
       "required": true,
-      "description": "Result display kit for round/game outcome."
+      "description": "Displays the round or game outcome.",
+      "requiresProvides": ["resultScreen"]
+    },
+    {
+      "name": "mainCamera",
+      "category": "camera",
+      "required": true,
+      "description": "Defines the main game view.",
+      "requiresProvides": ["isometricCamera"]
     }
   ],
   "optionalSlots": [
     {
-      "name": "mainCamera",
-      "category": "camera",
-      "required": false,
-      "description": "Optional camera behavior kit."
-    },
-    {
       "name": "timerUi",
       "category": "ui",
       "required": false,
-      "description": "Optional timer UI kit."
+      "description": "Displays remaining round time.",
+      "requiresProvides": ["roundTimerHud"]
     },
     {
       "name": "visualFlavor",
