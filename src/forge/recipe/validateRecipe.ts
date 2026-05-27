@@ -1,5 +1,5 @@
 import { gameRecipeSchema } from "./gameRecipe.zod"
-import { readJsonFile } from "../shared/readJsonFile"
+import { ReadJsonFileError, readJsonFile } from "../shared/readJsonFile"
 import {
   formatValidationFailure,
   formatValidationSuccess,
@@ -12,7 +12,18 @@ if (!recipePath) {
   process.exit(1)
 }
 
-const parsed = gameRecipeSchema.safeParse(readJsonFile(recipePath))
+let recipe: unknown
+try {
+  recipe = readJsonFile(recipePath)
+} catch (error) {
+  if (error instanceof ReadJsonFileError) {
+    console.error(`❌ ${error.message}`)
+    process.exit(1)
+  }
+  throw error
+}
+
+const parsed = gameRecipeSchema.safeParse(recipe)
 
 if (parsed.success) {
   console.log(formatValidationSuccess("GameRecipe", recipePath))

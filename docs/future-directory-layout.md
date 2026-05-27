@@ -1,7 +1,8 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-Phase 0.1 is documentation-only. These directories are not required to exist yet.
+As of Phase 2, schema and validator foundations exist for GameRecipe and
+KitManifest. The remaining directories below are still future target structure.
 
 ## Target structure
 

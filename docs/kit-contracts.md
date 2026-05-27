@@ -17,3 +17,13 @@ The schema source of truth is:
 The generated JSON Schema is:
 `schemas/kitManifest.schema.json`
 Entry file existence and compatibility checks are deferred to later phases.
+
+## Manifest rules
+
+- `id` must follow `^[a-z]+(?:\\.[a-zA-Z]+)*\\.v[0-9]+$` (example: `controller.puniPush.v1`).
+- `version` must follow semver-like format `x.y.z` with optional prerelease suffix.
+- `tunables` are validated by `type`:
+  - `number`: may define `default`, `min`, and `max`.
+  - `string`: may define `default` (string only).
+  - `boolean`: may define `default` (boolean only).
+- `min` / `max` are not allowed for `string` and `boolean` tunables.

@@ -26,11 +26,16 @@ The generated JSON Schema is:
 - `template`: required. A GameRecipe should select one main template.
 - `input`: required.
 - `durationSec`: optional but recommended for short games.
+- `durationSec`: optional top-level whole-game duration limit in seconds.
 - `requiredKits`: placeholder values are allowed in this phase.
 - `optionalKits`: optional.
-- `tuning`: optional safe parameter area.
+- `tuning`: optional safe parameter area for per-Kit configuration values (`tuning.*`), distinct from top-level game-wide values such as `durationSec`.
 - `constraints`: optional design constraints.
 - `notesForAssembler`: optional non-code guidance for the future assembler.
+
+## Validation note
+
+- A Kit ID must not appear in both `requiredKits` and `optionalKits`.
 
 ## Free-form code policy
 
