@@ -5,7 +5,7 @@ function App() {
     <div className="forge-app">
       <header className="forge-header">
         <h1>Game's Camp / AI Game Forge</h1>
-        <p className="forge-phase">Phase 1: Minimal Forge Shell</p>
+        <p className="forge-phase">Phase 2: Schema Foundations</p>
       </header>
 
       <main className="forge-main">

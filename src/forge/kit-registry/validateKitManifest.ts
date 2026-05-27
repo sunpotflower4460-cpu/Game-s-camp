@@ -1,5 +1,5 @@
 import { kitManifestSchema } from "./kitManifest.zod"
-import { readJsonFile } from "../shared/readJsonFile"
+import { ReadJsonFileError, readJsonFile } from "../shared/readJsonFile"
 import {
   formatValidationFailure,
   formatValidationSuccess,
@@ -14,7 +14,18 @@ if (!manifestPath) {
   process.exit(1)
 }
 
-const parsed = kitManifestSchema.safeParse(readJsonFile(manifestPath))
+let manifest: unknown
+try {
+  manifest = readJsonFile(manifestPath)
+} catch (error) {
+  if (error instanceof ReadJsonFileError) {
+    console.error(`❌ ${error.message}`)
+    process.exit(1)
+  }
+  throw error
+}
+
+const parsed = kitManifestSchema.safeParse(manifest)
 
 if (parsed.success) {
   console.log(formatValidationSuccess("KitManifest", manifestPath))

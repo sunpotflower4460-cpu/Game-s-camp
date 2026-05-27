@@ -32,5 +32,17 @@ export const gameRecipeSchema = z
     notesForAssembler: z.string().optional(),
   })
   .strict()
+  .superRefine((recipe, ctx) => {
+    const required = new Set(recipe.requiredKits)
+    for (const kit of recipe.optionalKits) {
+      if (required.has(kit)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["optionalKits"],
+          message: `Kit is both required and optional: ${kit}`,
+        })
+      }
+    }
+  })
 
 export type GameRecipe = z.infer<typeof gameRecipeSchema>

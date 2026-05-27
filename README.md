@@ -47,3 +47,30 @@ Current limits:
 - Kit IDs in the sample recipe are placeholders until the Kit Registry exists.
 - Kit manifest examples validate shape only.
 - Entry file existence and compatibility checks are intentionally deferred to later phases.
+
+## Generated JSON Schemas
+
+The files under `schemas/` are generated from the Zod sources in `src/forge/`.
+They are committed to the repository so that external tools (LLM prompts,
+editor integrations) can consume them without running the build.
+
+If you modify the Zod schemas, regenerate the JSON Schemas with:
+
+```bash
+npm run generate:schemas
+```
+
+CI will fail if `schemas/` is out of sync with the source.
+
+## Phase 2 verification checklist
+
+Run the following commands and confirm all succeed:
+
+```bash
+npm ci
+npm run typecheck
+npm run validate:recipes
+npm run validate:kits
+npm run generate:schemas
+npm run build
+```

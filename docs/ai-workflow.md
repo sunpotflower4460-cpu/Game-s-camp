@@ -28,4 +28,6 @@ Human Playtest
 
 ## Phase note
 
-In this PR (Phase 0), this is design documentation only. Nothing in this workflow is implemented yet.
+As of Phase 2, GameRecipe and KitManifest schema validation is executable via CLI.
+The full AI workflow pipeline (Assembler, Kit Registry compatibility, runtime wiring)
+is not yet implemented.

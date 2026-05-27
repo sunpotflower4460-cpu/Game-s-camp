@@ -1,7 +1,9 @@
 # Validation Gates
 
 This document defines validation policy for future implementation phases.
-No validation code is added in this Phase 0 PR.
+Phase 2 introduces schema-level validators for GameRecipe and KitManifest.
+Full Gate A (compatibility) and Gate B (playability) automation is planned
+for later phases.
 
 ## Gate A: Playable Gate
 

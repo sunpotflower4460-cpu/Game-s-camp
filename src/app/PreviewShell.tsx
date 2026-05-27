@@ -13,7 +13,7 @@ function PreviewShell() {
         <ul>
           <li>
             <span className="slot-label">GameRecipe</span>
-            <span className="slot-status">— not connected</span>
+            <span className="slot-status">— schema only (Phase 2)</span>
           </li>
           <li>
             <span className="slot-label">Kit Registry</span>

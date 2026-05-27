@@ -14,11 +14,11 @@ export const kitCategorySchema = z.enum([
 
 export const kitManifestSchema = z
   .object({
-    id: z.string().min(1),
+    id: z.string().regex(/^[a-z]+(?:\.[a-zA-Z]+)*\.v[0-9]+$/),
     name: z.string().min(1),
     category: kitCategorySchema,
     engine: z.enum(["phaser"]),
-    version: z.string().min(1),
+    version: z.string().regex(/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/),
     description: z.string().min(1),
     provides: z.array(z.string()).default([]),
     requires: z.array(z.string()).default([]),
@@ -26,13 +26,31 @@ export const kitManifestSchema = z
     tunables: z
       .record(
         z.string(),
-        z.object({
-          type: z.enum(["number", "string", "boolean"]),
-          default: z.union([z.number(), z.string(), z.boolean()]).optional(),
-          min: z.number().optional(),
-          max: z.number().optional(),
-          description: z.string().optional(),
-        }),
+        z.discriminatedUnion("type", [
+          z
+            .object({
+              type: z.literal("number"),
+              default: z.number().optional(),
+              min: z.number().optional(),
+              max: z.number().optional(),
+              description: z.string().optional(),
+            })
+            .strict(),
+          z
+            .object({
+              type: z.literal("string"),
+              default: z.string().optional(),
+              description: z.string().optional(),
+            })
+            .strict(),
+          z
+            .object({
+              type: z.literal("boolean"),
+              default: z.boolean().optional(),
+              description: z.string().optional(),
+            })
+            .strict(),
+        ]),
       )
       .default({}),
     invariants: z.array(z.string()).default([]),
