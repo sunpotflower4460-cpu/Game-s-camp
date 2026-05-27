@@ -36,19 +36,20 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 2: GameRecipe and KitManifest schemas.
+Phase 2.5: Kit Registry and recipe compatibility checks.
 Allowed in this phase:
 - schema files
 - validation scripts
 - sample GameRecipe JSON
-- example KitManifest JSON
+- Kit manifest JSON inventory under kits/
+- Kit Registry loading and duplicate-id checks
+- Recipe compatibility checks against registry metadata
 - generated JSON Schema files
 
 Not allowed in this phase:
 - Phaser
 - Puni Sumo gameplay implementation
 - actual Kit implementation
-- Kit Registry implementation beyond manifest shape validation
 - Assembler
 - generated game output
 - custom game output

@@ -11,11 +11,12 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 2.
+- This PR is Phase 2.5.
 - GameRecipe and KitManifest schema/validator foundations are available.
+- Kit Registry loading/validation and recipe compatibility checks are in scope.
 - Do not add Phaser yet.
 - Do not implement Puni Sumo yet.
-- Do not add actual Kit implementation, compatibility checks, or Assembler logic yet.
+- Do not add actual Kit implementation or Assembler logic yet.
 
 ## Currently available commands
 
@@ -26,6 +27,8 @@ npm run preview
 npm run typecheck
 npm run validate:recipes
 npm run validate:kits
+npm run validate:kit-registry
+npm run validate:recipe-compatibility
 npm run generate:schemas
 ```
 

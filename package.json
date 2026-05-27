@@ -14,7 +14,9 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "validate:kits": "tsx scripts/validateAllKits.ts",
-    "validate:recipes": "tsx scripts/validateAllRecipes.ts"
+    "validate:recipes": "tsx scripts/validateAllRecipes.ts",
+    "validate:kit-registry": "tsx scripts/validateKitRegistry.ts",
+    "validate:recipe-compatibility": "tsx scripts/validateRecipeCompatibility.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
