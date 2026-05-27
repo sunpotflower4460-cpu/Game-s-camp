@@ -35,12 +35,12 @@ function createAssignment(
   }
 }
 
-function toSlotReason(
+function explainUnresolvedSlot(
   slot: { name: string; category: string },
   hasCategoryCandidates: boolean,
 ): string {
   if (!hasCategoryCandidates) {
-    return `No registered kit found for category "${slot.category}" in recipe kit references.`
+    return `No kit with category "${slot.category}" is listed in the recipe's requiredKits or optionalKits.`
   }
 
   return `No unassigned kit remains for category "${slot.category}".`
@@ -85,7 +85,9 @@ export function createAssemblerPlan(args: {
   const { recipe, templateRegistry, kitRegistry } = args
   const templateEntry = getTemplateEntry(recipe, templateRegistry)
   const referencedKitEntries = collectReferencedKitEntries(recipe, kitRegistry)
-  const notes: string[] = []
+  const notes: string[] = [
+    "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits).",
+  ]
   const assignedKitIds = new Set<string>()
   const requiredAssignments: AssemblerSlotAssignment[] = []
   const optionalAssignments: AssemblerSlotAssignment[] = []
@@ -102,22 +104,22 @@ export function createAssemblerPlan(args: {
     const unassignedCandidates = categoryCandidates.filter(
       (entry) => !assignedKitIds.has(entry.manifest.id),
     )
-    const selected = unassignedCandidates[0]
+    const firstAvailableCandidate = unassignedCandidates[0]
 
-    if (!selected) {
+    if (!firstAvailableCandidate) {
       if (unresolvedTarget) {
         unresolvedTarget.push({
           slotName: slot.name,
           category: slot.category,
-          reason: toSlotReason(slot, categoryCandidates.length > 0),
+          reason: explainUnresolvedSlot(slot, categoryCandidates.length > 0),
         })
       }
       return
     }
 
-    assignedKitIds.add(selected.manifest.id)
-    target.push(createAssignment(slot, selected))
-    noteMultipleCandidates(notes, slot, selected.manifest.id, categoryCandidates)
+    assignedKitIds.add(firstAvailableCandidate.manifest.id)
+    target.push(createAssignment(slot, firstAvailableCandidate))
+    noteMultipleCandidates(notes, slot, firstAvailableCandidate.manifest.id, categoryCandidates)
   }
 
   for (const requiredSlot of templateEntry.manifest.requiredSlots) {

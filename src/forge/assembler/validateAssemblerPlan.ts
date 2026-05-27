@@ -32,7 +32,7 @@ export function validateAssemblerPlan(plan: AssemblerPlan): AssemblerPlanIssue[]
     if (assignment.slotName.trim().length === 0) {
       issues.push({
         severity: "error",
-        type: "unresolved_required_slot",
+        type: "missing_plan_identity",
         message: "Required assignment has an empty slot name.",
       })
     }
