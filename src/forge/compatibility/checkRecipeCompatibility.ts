@@ -7,7 +7,7 @@ import {
 } from "./compatibilityResult"
 import { checkRecipeKitReferences } from "./checkRecipeKitReferences"
 
-function checkRule(
+function checkFieldCompatibility(
   recipe: GameRecipe,
   entry: KitRegistryEntry,
   field: string,
@@ -63,8 +63,8 @@ export function checkRecipeCompatibility(
       })
     }
 
-    issues.push(...checkRule(recipe, entry, "templates", recipe.template))
-    issues.push(...checkRule(recipe, entry, "inputs", recipe.input))
+    issues.push(...checkFieldCompatibility(recipe, entry, "templates", recipe.template))
+    issues.push(...checkFieldCompatibility(recipe, entry, "inputs", recipe.input))
   }
 
   return createCompatibilityResult(issues)

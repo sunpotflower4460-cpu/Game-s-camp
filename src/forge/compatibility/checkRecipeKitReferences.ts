@@ -6,7 +6,7 @@ import {
   type CompatibilityResult,
 } from "./compatibilityResult"
 
-function collectIds(recipe: GameRecipe): string[] {
+function collectKitIds(recipe: GameRecipe): string[] {
   return [...recipe.requiredKits, ...recipe.optionalKits]
 }
 
@@ -17,7 +17,7 @@ export function checkRecipeKitReferences(
   const issues = [] as CompatibilityResult["issues"]
 
   const idCounts = new Map<string, number>()
-  for (const kitId of collectIds(recipe)) {
+  for (const kitId of collectKitIds(recipe)) {
     idCounts.set(kitId, (idCounts.get(kitId) ?? 0) + 1)
   }
 

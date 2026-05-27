@@ -72,9 +72,13 @@ export function loadKitRegistry(rootDir = "kits"): KitRegistry {
 
   const byId = new Map<string, KitRegistryEntry>()
   for (const entry of entries) {
-    if (!byId.has(entry.manifest.id)) {
-      byId.set(entry.manifest.id, entry)
+    const existing = byId.get(entry.manifest.id)
+    if (existing) {
+      throw new LoadKitRegistryError(
+        `Duplicate kit id found: ${entry.manifest.id} (${existing.manifestPath}, ${entry.manifestPath})`,
+      )
     }
+    byId.set(entry.manifest.id, entry)
   }
 
   return {
