@@ -1,0 +1,24 @@
+{
+  "id": "rule.ringOut.v1",
+  "name": "Ring Out Rule",
+  "category": "rule",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Rule kit manifest for ring-out win condition.",
+  "provides": ["ringOutJudge"],
+  "requires": ["stage.arenaBounds"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag"]
+  },
+  "tunables": {
+    "ringMargin": {
+      "type": "number",
+      "default": 0,
+      "min": -30,
+      "max": 30
+    }
+  },
+  "invariants": ["mustNotRenderUI"],
+  "entry": "src/kits/rules/ringOut/RingOutRule.ts"
+}

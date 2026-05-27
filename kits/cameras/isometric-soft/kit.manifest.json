@@ -1,0 +1,24 @@
+{
+  "id": "camera.isometricSoft.v1",
+  "name": "Isometric Soft Camera",
+  "category": "camera",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Camera kit manifest for soft isometric-like framing.",
+  "provides": ["cameraFollow"],
+  "requires": ["runtime.scene"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag"]
+  },
+  "tunables": {
+    "followLerp": {
+      "type": "number",
+      "default": 0.14,
+      "min": 0,
+      "max": 1
+    }
+  },
+  "invariants": ["mustNotOwnWinCondition"],
+  "entry": "src/kits/cameras/isometricSoft/IsometricSoftCamera.ts"
+}

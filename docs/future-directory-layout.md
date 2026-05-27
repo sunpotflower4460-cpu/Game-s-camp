@@ -1,8 +1,7 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-As of Phase 2, schema and validator foundations exist for GameRecipe and
-KitManifest. The remaining directories below are still future target structure.
+As of Phase 2.5, GameRecipe/KitManifest schemas plus Kit Registry and recipe compatibility validation exist. Runtime implementation directories are still future target structure.
 
 ## Target structure
 
@@ -25,6 +24,8 @@ kits/
       kit.manifest.json
   ui/
     round-timer/
+      kit.manifest.json
+    result-screen/
       kit.manifest.json
 templates/
   mini-action/

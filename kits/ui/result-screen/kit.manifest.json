@@ -1,0 +1,24 @@
+{
+  "id": "ui.resultScreen.v1",
+  "name": "Result Screen UI",
+  "category": "ui",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "UI kit manifest for win/lose result presentation.",
+  "provides": ["resultScreen"],
+  "requires": ["runtime.uiLayer"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag"]
+  },
+  "tunables": {
+    "showDurationMs": {
+      "type": "number",
+      "default": 1500,
+      "min": 500,
+      "max": 6000
+    }
+  },
+  "invariants": ["mustNotAlterPhysics"],
+  "entry": "src/kits/ui/resultScreen/ResultScreenUI.ts"
+}

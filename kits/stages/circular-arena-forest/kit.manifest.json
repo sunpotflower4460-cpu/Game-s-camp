@@ -1,0 +1,24 @@
+{
+  "id": "stage.circularArenaForest.v1",
+  "name": "Circular Arena Forest Stage",
+  "category": "stage",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Stage kit manifest for a circular forest arena.",
+  "provides": ["arenaBounds"],
+  "requires": ["runtime.physics"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag"]
+  },
+  "tunables": {
+    "arenaRadius": {
+      "type": "number",
+      "default": 260,
+      "min": 120,
+      "max": 640
+    }
+  },
+  "invariants": ["mustExposeRingOutBoundary"],
+  "entry": "src/kits/stages/circularArenaForest/CircularArenaForestStage.ts"
+}

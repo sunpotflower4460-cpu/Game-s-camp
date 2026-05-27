@@ -1,0 +1,30 @@
+{
+  "id": "controller.puniPush.v1",
+  "name": "Puni Push Controller",
+  "category": "controller",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Controller kit manifest for soft push movement.",
+  "provides": ["playerMovement", "pushForce"],
+  "requires": ["input.mobile_drag"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag"]
+  },
+  "tunables": {
+    "moveSpeed": {
+      "type": "number",
+      "default": 180,
+      "min": 60,
+      "max": 360
+    },
+    "pushPower": {
+      "type": "number",
+      "default": 1.2,
+      "min": 0.2,
+      "max": 3
+    }
+  },
+  "invariants": ["mustNotCreateWinCondition"],
+  "entry": "src/kits/controllers/puniPush/PuniPushController.ts"
+}

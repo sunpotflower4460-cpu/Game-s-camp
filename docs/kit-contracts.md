@@ -9,14 +9,16 @@
 - Rule Kit must not directly own rendering.
 - New game-specific behavior should not become a Kit unless reusable.
 
-## Phase 2 note
+## Phase 2.5 note
 
-Phase 2 adds the first executable KitManifest schema and validator.
+Phase 2.5 adds Kit Registry loading and duplicate Kit ID validation on top of the KitManifest schema validator.
 The schema source of truth is:
 `src/forge/kit-registry/kitManifest.zod.ts`
+The registry logic is:
+`src/forge/kit-registry/loadKitRegistry.ts` and `src/forge/kit-registry/validateKitRegistry.ts`
 The generated JSON Schema is:
 `schemas/kitManifest.schema.json`
-Entry file existence and compatibility checks are deferred to later phases.
+Entry file existence checks are deferred to later phases.
 
 ## Manifest rules
 

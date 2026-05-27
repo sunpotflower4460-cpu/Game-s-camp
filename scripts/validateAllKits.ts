@@ -3,7 +3,7 @@ import { validateAll } from "./lib/validateAll"
 
 validateAll({
   label: "KitManifest",
-  rootDir: "examples/kits",
-  suffix: ".manifest.json",
+  rootDir: "kits",
+  suffix: "kit.manifest.json",
   schema: kitManifestSchema,
 })

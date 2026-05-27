@@ -12,10 +12,10 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 2 adds schema foundations for GameRecipe and KitManifest.
+Phase 2.5 adds Kit Registry and recipe compatibility validation on top of the schema foundations.
 
 This is not a game implementation yet.
-Phaser, Puni Sumo gameplay, actual Kit implementations, Kit Registry compatibility checks, and Assembler work are intentionally not included in this phase.
+Phaser, Puni Sumo gameplay, actual Kit implementations, and Assembler work are intentionally not included in this phase.
 
 ## Local development
 
@@ -34,19 +34,22 @@ npm run typecheck   # type-check without emitting files
 
 ## Recipe and Kit validation
 
-Phase 2 introduces schema-based validation for GameRecipe and KitManifest examples.
+Phase 2.5 validates GameRecipe, KitManifest, Kit Registry integrity, and recipe-to-kit compatibility.
 
 ```bash
 npm run validate:recipes
 npm run validate:kits
+npm run validate:kit-registry
+npm run validate:recipe-compatibility
 npm run generate:schemas
 ```
 
 Current limits:
 
-- Kit IDs in the sample recipe are placeholders until the Kit Registry exists.
-- Kit manifest examples validate shape only.
-- Entry file existence and compatibility checks are intentionally deferred to later phases.
+- Kit Registry now checks duplicate Kit IDs and loadability.
+- Recipe compatibility checks enforce required Kit existence and Kit/recipe engine-template-input consistency.
+- Optional missing Kits are reported as warnings.
+- Entry file existence checks are still deferred to later phases.
 
 ## Generated JSON Schemas
 
@@ -62,7 +65,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 2 verification checklist
+## Phase 2.5 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -71,6 +74,8 @@ npm ci
 npm run typecheck
 npm run validate:recipes
 npm run validate:kits
+npm run validate:kit-registry
+npm run validate:recipe-compatibility
 npm run generate:schemas
 npm run build
 ```
