@@ -44,9 +44,90 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: target_play_time
+    attributes:
+      label: Target play time
+      placeholder: 60 seconds
+    validations:
+      required: false
+
+  - type: textarea
+    id: win_condition
+    attributes:
+      label: Win condition / success condition
+      placeholder: 相手を土俵外へ押し出したら勝ち
+    validations:
+      required: false
+
+  - type: textarea
+    id: fail_condition
+    attributes:
+      label: Lose / fail condition
+      placeholder: 自分が土俵外へ出たら負け
+    validations:
+      required: false
+
+  - type: dropdown
+    id: input_preference
+    attributes:
+      label: Input preference
+      options:
+        - mobile_drag
+        - tap
+        - keyboard
+        - gamepad
+        - both_mobile_pc
+        - undecided
+    validations:
+      required: false
+
+  - type: dropdown
+    id: camera_view
+    attributes:
+      label: Camera / view
+      options:
+        - top_down
+        - side_view
+        - isometric
+        - first_person
+        - third_person
+        - fixed_camera
+        - undecided
+    validations:
+      required: false
+
+  - type: textarea
+    id: mood_visual
+    attributes:
+      label: Mood / visual direction
+      placeholder: ミニチュアジオラマ風、柔らかい、かわいい、森の中
+    validations:
+      required: false
+
   - type: textarea
     id: must_keep
     attributes:
       label: Must keep
       description: Things that must not be broken.
       placeholder: スマホで遊びやすい / 操作は簡単 / 1分以内で終わる
+    validations:
+      required: false
+
+  - type: textarea
+    id: must_not_happen
+    attributes:
+      label: Must not happen
+      description: Things AI should avoid.
+      placeholder: 操作を複雑にしない / 長いチュートリアルにしない / 重くしない
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Optional reference games, feelings, or examples.
+      placeholder: はじめてゲームプログラミングのように小さく遊べる感じ
+    validations:
+      required: false
