@@ -1,0 +1,137 @@
+{
+  "$ref": "#/definitions/TemplateManifest",
+  "definitions": {
+    "TemplateManifest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^template\\.[a-zA-Z0-9]{1,64}\\.v\\d{1,9}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "genre": {
+          "type": "string",
+          "enum": [
+            "mini_action",
+            "puzzle",
+            "exploration",
+            "srpg",
+            "mystery_sandbox"
+          ]
+        },
+        "engine": {
+          "type": "string",
+          "enum": [
+            "phaser"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d{1,9}\\.\\d{1,9}\\.\\d{1,9}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredSlots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "controller",
+                  "camera",
+                  "physics",
+                  "stage",
+                  "rule",
+                  "ui",
+                  "visual",
+                  "audio",
+                  "npc"
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "category",
+              "required",
+              "description"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "optionalSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TemplateManifest/properties/requiredSlots/items"
+          },
+          "default": []
+        },
+        "files": {
+          "type": "object",
+          "properties": {
+            "gameScene": {
+              "type": "string",
+              "minLength": 1
+            },
+            "titleScene": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resultScene": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gameConfig": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "gameScene",
+            "titleScene",
+            "resultScene",
+            "gameConfig"
+          ],
+          "additionalProperties": false
+        },
+        "invariants": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "genre",
+        "engine",
+        "version",
+        "description",
+        "requiredSlots",
+        "files"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
