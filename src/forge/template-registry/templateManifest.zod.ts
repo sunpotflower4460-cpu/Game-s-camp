@@ -19,11 +19,11 @@ export const templateSlotSchema = z.object({
 
 export const templateManifestSchema = z
   .object({
-    id: z.string().regex(/^template\.[a-zA-Z0-9]+\.v\d+$/),
+    id: z.string().regex(/^template\.[a-zA-Z0-9]{1,64}\.v\d{1,6}$/),
     name: z.string().min(1),
     genre: z.enum(["mini_action", "puzzle", "exploration", "srpg", "mystery_sandbox"]),
     engine: z.enum(["phaser"]),
-    version: z.string().regex(/^\d+\.\d+\.\d+$/),
+    version: z.string().regex(/^\d{1,9}\.\d{1,9}\.\d{1,9}$/),
     description: z.string().min(1),
     requiredSlots: z.array(templateSlotSchema).min(1),
     optionalSlots: z.array(templateSlotSchema).default([]),
