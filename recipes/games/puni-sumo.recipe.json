@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "0.1",
+  "id": "puni-sumo-forest-v1",
+  "title": "森のぷに相撲",
+  "genre": "mini_action",
+  "targetDevice": "both",
+  "engine": "phaser",
+  "template": "template.miniAction.v1",
+  "input": "mobile_drag",
+  "durationSec": 60,
+  "requiredKits": [
+    "controller.puniPush.v1",
+    "camera.isometricSoft.v1",
+    "stage.circularArenaForest.v1",
+    "rule.ringOut.v1",
+    "ui.roundTimer.v1",
+    "ui.resultScreen.v1"
+  ],
+  "optionalKits": [
+    "audio.softImpact.v1",
+    "visual.miniatureDiorama.v1"
+  ],
+  "tuning": {
+    "moveSpeed": 180,
+    "pushPower": 1.2,
+    "arenaRadius": 260,
+    "roundTimeSec": 60
+  },
+  "constraints": [
+    "mobile friendly",
+    "one round within 60 seconds",
+    "simple controls",
+    "do not add complex progression systems"
+  ],
+  "notesForAssembler": "Kit IDs are placeholders until the Kit Registry exists."
+}

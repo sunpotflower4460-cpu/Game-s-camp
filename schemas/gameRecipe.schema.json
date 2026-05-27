@@ -1,0 +1,107 @@
+{
+  "$ref": "#/definitions/GameRecipe",
+  "definitions": {
+    "GameRecipe": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "0.1"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "genre": {
+          "type": "string",
+          "enum": [
+            "mini_action",
+            "puzzle",
+            "exploration",
+            "srpg",
+            "mystery_sandbox"
+          ]
+        },
+        "targetDevice": {
+          "type": "string",
+          "enum": [
+            "mobile",
+            "pc",
+            "both"
+          ]
+        },
+        "engine": {
+          "type": "string",
+          "enum": [
+            "phaser"
+          ]
+        },
+        "template": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "durationSec": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        "requiredKits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "optionalKits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "tuning": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "notesForAssembler": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "id",
+        "title",
+        "genre",
+        "targetDevice",
+        "engine",
+        "template",
+        "input"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

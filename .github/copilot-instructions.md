@@ -11,12 +11,11 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 1.
-- Runtime placeholder files exist under `src/runtime/`.
-- Vite + React + TypeScript app is available.
+- This PR is Phase 2.
+- GameRecipe and KitManifest schema/validator foundations are available.
 - Do not add Phaser yet.
 - Do not implement Puni Sumo yet.
-- Do not add GameRecipe validator, Kit Registry, or Assembler yet.
+- Do not add actual Kit implementation, compatibility checks, or Assembler logic yet.
 
 ## Currently available commands
 
@@ -25,6 +24,9 @@ npm run dev
 npm run build
 npm run preview
 npm run typecheck
+npm run validate:recipes
+npm run validate:kits
+npm run generate:schemas
 ```
 
 ## Future commands (not available yet)
@@ -34,7 +36,5 @@ The following commands are planned for future phases. They are not runnable yet.
 ```txt
 npm run lint
 npm run test
-npm run validate:recipes
-npm run validate:kits
 npm run test:e2e
 ```

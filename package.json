@@ -4,20 +4,27 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc -b && vite build",
+    "dev": "vite",
+    "generate:schemas": "tsx scripts/generateSchemas.ts",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "validate:kits": "tsx src/forge/kit-registry/validateKitManifest.ts examples/kits/controller.puniPush.v1.manifest.json",
+    "validate:recipes": "tsx src/forge/recipe/validateRecipe.ts recipes/games/puni-sumo.recipe.json"
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^22.15.30",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "zod-to-json-schema": "^3.23.5"
   }
 }

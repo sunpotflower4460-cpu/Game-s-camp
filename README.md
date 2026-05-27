@@ -10,17 +10,12 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 - A future Assembler connects Templates and Kits to generate game output.
 - GitHub-based validation gates verify playability and quality.
 
-## Phase 0 focus
+## Current implementation phase
 
-The first MVP validation target is **「ぷに相撲」 (Puni Sumo)**.
+Phase 2 adds schema foundations for GameRecipe and KitManifest.
 
-However, this PR is **Phase 0 foundation only**:
-
-- No game runtime/app implementation yet.
-- No Vite / React / Phaser setup yet.
-- No package.json yet.
-
-This phase only establishes shared rules and documents so AI can work consistently in later phases.
+This is not a game implementation yet.
+Phaser, Puni Sumo gameplay, actual Kit implementations, Kit Registry compatibility checks, and Assembler work are intentionally not included in this phase.
 
 ## Local development
 
@@ -37,9 +32,18 @@ npm run preview     # preview the production build locally
 npm run typecheck   # type-check without emitting files
 ```
 
-## Current implementation phase
+## Recipe and Kit validation
 
-Phase 1 adds the minimal Vite + React + TypeScript forge shell.
+Phase 2 introduces schema-based validation for GameRecipe and KitManifest examples.
 
-This is not a game implementation yet.
-Phaser, GameRecipe validation, Kit Registry, Assembler, and Puni Sumo are intentionally not included in this phase.
+```bash
+npm run validate:recipes
+npm run validate:kits
+npm run generate:schemas
+```
+
+Current limits:
+
+- Kit IDs in the sample recipe are placeholders until the Kit Registry exists.
+- Kit manifest examples validate shape only.
+- Entry file existence and compatibility checks are intentionally deferred to later phases.
