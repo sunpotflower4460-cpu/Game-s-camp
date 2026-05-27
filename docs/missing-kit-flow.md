@@ -18,7 +18,7 @@ Use existing Kit in GameRecipe
   ↓ no
 Create a KitProposal
 ↓
-Can this be reusable?
+Can this be reusable? (see criteria below)
   ↓ yes
 Plan a new reusable Kit
   ↓ no

@@ -16,6 +16,7 @@ If a required Kit does not exist, the AI must not invent implementation directly
 
 - `schemaVersion`: required. Example: `"0.1"`.
 - `id`: required. Use kebab-case, e.g. `puni-sumo-forest-v1`.
+- Version suffixes such as `-v1` should change only when the recipe contract meaningfully changes; tuning-only adjustments can stay within the same version until schema policy is formalized.
 - `title`: required.
 - `genre`: required. Initial allowed values: `mini_action`, `puzzle`, `exploration`, `srpg`, `mystery_sandbox`.
 - `targetDevice`: required. Allowed values: `mobile`, `pc`, `both`.
