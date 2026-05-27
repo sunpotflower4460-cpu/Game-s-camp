@@ -11,15 +11,16 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 4.
+- This PR is Phase 4.5.
 - GameRecipe, KitManifest, and TemplateManifest schema/validator foundations are available.
 - Kit Registry and Template Registry loading/validation are in scope.
-- Recipe compatibility checks now include template registry existence checks.
-- Runtime-neutral Kit skeleton files under `src/kits/` are in scope.
-- Template placeholder files under `templates/mini-action/files/` are in scope.
+- Recipe compatibility checks include template registry existence checks.
+- Assembler plan creation/validation/explanation and `plans/` design artifacts are in scope.
+- Runtime-neutral Kit skeleton files under `src/kits/` and template placeholders under `templates/mini-action/files/` are in scope.
 - Do not add Phaser yet.
 - Do not implement playable Puni Sumo yet.
-- Do not add actual Kit runtime implementation or Assembler logic yet.
+- Do not render templates or generate `generated/` / `custom/` output yet.
+- Do not add actual runtime scene implementation yet.
 
 ## Currently available commands
 
@@ -32,7 +33,8 @@ npm run validate:recipes
 npm run validate:kits
 npm run validate:kit-registry
 npm run validate:template-registry
-npm run validate:recipe-compatibility
+npm run validate:compatibility
+npm run plan:assembler
 npm run generate:schemas
 ```
 

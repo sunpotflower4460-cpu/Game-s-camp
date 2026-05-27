@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "0.1",
+  "recipeId": "puni-sumo-forest-v1",
+  "gameTitle": "森のぷに相撲",
+  "templateId": "template.miniAction.v1",
+  "templateManifestPath": "templates/mini-action/template.manifest.json",
+  "engine": "phaser",
+  "genre": "mini_action",
+  "input": "mobile_drag",
+  "requiredAssignments": [
+    {
+      "slotName": "playerController",
+      "category": "controller",
+      "required": true,
+      "kitId": "controller.puniPush.v1",
+      "manifestPath": "kits/controllers/puni-push/kit.manifest.json"
+    },
+    {
+      "slotName": "mainStage",
+      "category": "stage",
+      "required": true,
+      "kitId": "stage.circularArenaForest.v1",
+      "manifestPath": "kits/stages/circular-arena-forest/kit.manifest.json"
+    },
+    {
+      "slotName": "winLoseRule",
+      "category": "rule",
+      "required": true,
+      "kitId": "rule.ringOut.v1",
+      "manifestPath": "kits/rules/ring-out/kit.manifest.json"
+    },
+    {
+      "slotName": "resultUi",
+      "category": "ui",
+      "required": true,
+      "kitId": "ui.roundTimer.v1",
+      "manifestPath": "kits/ui/round-timer/kit.manifest.json"
+    }
+  ],
+  "optionalAssignments": [
+    {
+      "slotName": "mainCamera",
+      "category": "camera",
+      "required": false,
+      "kitId": "camera.isometricSoft.v1",
+      "manifestPath": "kits/cameras/isometric-soft/kit.manifest.json"
+    },
+    {
+      "slotName": "timerUi",
+      "category": "ui",
+      "required": false,
+      "kitId": "ui.resultScreen.v1",
+      "manifestPath": "kits/ui/result-screen/kit.manifest.json"
+    }
+  ],
+  "unresolvedRequiredSlots": [],
+  "notes": [
+    "Slot \"resultUi\" (ui) selected ui.roundTimer.v1; other candidates: ui.resultScreen.v1",
+    "Slot \"timerUi\" (ui) selected ui.resultScreen.v1; other candidates: ui.roundTimer.v1"
+  ]
+}

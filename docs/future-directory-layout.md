@@ -106,3 +106,9 @@ src/
 `custom/` must never be overwritten by future assembler runs.
 
 If a change should survive regeneration, it belongs in `custom/`, a Kit, a Template, or a Recipe — not directly inside generated output.
+
+## Phase 4.5 plans/
+
+`plans/` contains pre-generation Assembler Plan artifacts.
+These are not playable game outputs.
+They are planning artifacts used before future `generated/` output exists.
