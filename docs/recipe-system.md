@@ -29,6 +29,12 @@ Instead, the forge creates an Assembler Plan that maps:
 - optional Kit slots
 into a human/AI-readable plan.
 
+## Phase 5 Safe Renderer Dry Run
+
+Phase 5 reads the Assembler Plan and template placeholder files, then writes safe dry-run output under `generated/games/puni-sumo/`.
+The renderer performs minimal token replacement only and validates that no unresolved placeholders remain.
+This phase still does not wire output into runtime and does not create playable gameplay.
+
 ## Core fields
 
 - `schemaVersion`: required. Example: `"0.1"`.
