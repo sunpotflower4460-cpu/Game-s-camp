@@ -12,6 +12,7 @@
     "dev": "vite",
     "generate:schemas": "tsx scripts/generateSchemas.ts",
     "plan:assembler": "tsx scripts/createAssemblerPlan.ts",
+    "render:dry-run": "tsx scripts/renderPuniSumoDryRun.ts",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "validate:compatibility": "tsx scripts/validateRecipeCompatibility.ts",

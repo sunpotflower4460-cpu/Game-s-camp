@@ -12,10 +12,10 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 4.5 adds an Assembler planning skeleton on top of Phase 4 Template/Registry foundations.
+Phase 5 adds a safe template renderer dry-run on top of the Phase 4.5 Assembler Plan.
 
 This is not a game implementation yet.
-Phaser, playable Puni Sumo gameplay, template rendering, and generated game output are intentionally not included in this phase.
+Phaser and playable Puni Sumo gameplay are intentionally not included in this phase.
 
 ## Local development
 
@@ -43,6 +43,7 @@ npm run validate:kit-registry
 npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
+npm run render:dry-run
 npm run generate:schemas
 ```
 
@@ -52,29 +53,36 @@ Current limits:
 - Template Registry checks duplicate Template IDs and template file placeholder references.
 - Recipe compatibility checks enforce required Kit existence, Kit/recipe engine-template-input consistency, and recipe template existence in Template Registry.
 - Assembler planning maps Recipe + Template slots + Kit manifests into a pre-generation plan under `plans/`.
+- Safe renderer dry-run maps template placeholders into `generated/games/puni-sumo/` output and emits a render report.
 - Optional missing Kits are reported as warnings.
 - Kit implementations in `src/kits/` are runtime-neutral skeletons only.
-- Template files in `templates/mini-action/files/` are placeholders only (no generated output yet).
+- Generated files are placeholders only and are not wired into runtime execution.
 
-## Assembler Plan
+## Assembler Plan + Dry Run Render
 
 Phase 4.5 introduces an Assembler planning step.
 
 ```bash
 npm run plan:assembler
+npm run render:dry-run
 ```
 
 This creates:
 
 - `plans/puni-sumo.assembler-plan.json`
 - `plans/puni-sumo.assembler-plan.md`
+- `generated/games/puni-sumo/GameScene.ts`
+- `generated/games/puni-sumo/TitleScene.ts`
+- `generated/games/puni-sumo/ResultScene.ts`
+- `generated/games/puni-sumo/gameConfig.ts`
+- `generated/games/puni-sumo/render-report.md`
 
 Current limits:
 
-- The plan is not generated game output.
-- Template rendering is intentionally deferred.
-- `generated/` and `custom/` are not created yet.
+- The output is placeholder-only dry-run generation.
+- Runtime wiring to app/runtime is intentionally deferred.
 - Phaser integration is still deferred.
+- `custom/` output is intentionally deferred.
 
 ## Generated JSON Schemas
 
@@ -90,7 +98,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 4.5 verification checklist
+## Phase 5 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -103,6 +111,7 @@ npm run validate:kit-registry
 npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
+npm run render:dry-run
 npm run generate:schemas
 npm run build
 ```

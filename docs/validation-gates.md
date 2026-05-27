@@ -38,6 +38,8 @@ Checks that should eventually run through scripts or CI.
 - recipe validation succeeds
 - kit validation succeeds
 - compatibility check succeeds
+- assembler plan generation succeeds
+- dry-run render generation succeeds
 - no critical console errors
 
 ### Automated e2e-check
