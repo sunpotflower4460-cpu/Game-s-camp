@@ -20,5 +20,6 @@
     }
   },
   "invariants": ["mustExposeRingOutBoundary"],
-  "entry": "src/kits/stages/circularArenaForest/CircularArenaForestStage.ts"
+  "entry": "src/kits/stages/circularArenaForest/CircularArenaForest.ts",
+  "testFixture": "src/kits/stages/circularArenaForest/CircularArenaForest.fixture.ts"
 }

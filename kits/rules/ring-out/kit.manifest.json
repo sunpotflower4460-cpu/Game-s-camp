@@ -20,5 +20,6 @@
     }
   },
   "invariants": ["mustNotRenderUI"],
-  "entry": "src/kits/rules/ringOut/RingOutRule.ts"
+  "entry": "src/kits/rules/ringOut/RingOutRule.ts",
+  "testFixture": "src/kits/rules/ringOut/RingOutRule.fixture.ts"
 }

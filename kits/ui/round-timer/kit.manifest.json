@@ -20,5 +20,6 @@
     }
   },
   "invariants": ["mustNotAlterPhysics"],
-  "entry": "src/kits/ui/roundTimer/RoundTimerUI.ts"
+  "entry": "src/kits/ui/roundTimer/RoundTimer.ts",
+  "testFixture": "src/kits/ui/roundTimer/RoundTimer.fixture.ts"
 }

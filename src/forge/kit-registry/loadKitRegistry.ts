@@ -1,5 +1,5 @@
 import { readdirSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, isAbsolute, join, resolve } from "node:path"
 
 import { ReadJsonFileError, readJsonFile } from "../shared/readJsonFile"
 
@@ -11,6 +11,21 @@ export class LoadKitRegistryError extends Error {
     super(message)
     this.name = "LoadKitRegistryError"
   }
+}
+
+export function resolveManifestReferencePath(
+  manifestPath: string,
+  referencePath: string,
+): string {
+  if (isAbsolute(referencePath)) {
+    return referencePath
+  }
+
+  if (referencePath.startsWith("./") || referencePath.startsWith("../")) {
+    return resolve(dirname(manifestPath), referencePath)
+  }
+
+  return resolve(referencePath)
 }
 
 function findManifestPaths(rootDir: string): string[] {

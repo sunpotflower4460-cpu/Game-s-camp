@@ -1,7 +1,7 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-As of Phase 2.5, GameRecipe/KitManifest schemas plus Kit Registry and recipe compatibility validation exist. Runtime implementation directories are still future target structure.
+As of Phase 3, GameRecipe/KitManifest schemas plus Kit Registry/recipe compatibility validation exist, and runtime-neutral Kit skeletons are available under `src/kits/`.
 
 ## Target structure
 
@@ -47,6 +47,34 @@ custom/
       notes.md
 src/
   app/
+  kits/
+    shared/
+      KitContext.ts
+      KitDefinition.ts
+      KitLifecycle.ts
+    controllers/
+      puniPush/
+        PuniPushController.ts
+        PuniPushController.fixture.ts
+    cameras/
+      isometricSoft/
+        IsometricSoftCamera.ts
+        IsometricSoftCamera.fixture.ts
+    stages/
+      circularArenaForest/
+        CircularArenaForest.ts
+        CircularArenaForest.fixture.ts
+    rules/
+      ringOut/
+        RingOutRule.ts
+        RingOutRule.fixture.ts
+    ui/
+      roundTimer/
+        RoundTimer.ts
+        RoundTimer.fixture.ts
+      resultScreen/
+        ResultScreen.ts
+        ResultScreen.fixture.ts
   runtime/
   forge/
     recipe/

@@ -1,4 +1,7 @@
+import { existsSync } from "node:fs"
+
 import type { KitRegistry } from "./kitRegistry.types"
+import { resolveManifestReferencePath } from "./loadKitRegistry"
 
 export type KitRegistryValidationResult = {
   ok: boolean
@@ -28,6 +31,30 @@ export function validateKitRegistry(
     errors.push(
       `Duplicate kit id found: ${kitId} (${paths.join(", ")})`,
     )
+  }
+
+  for (const entry of registry.entries) {
+    const entryPath = resolveManifestReferencePath(
+      entry.manifestPath,
+      entry.manifest.entry,
+    )
+    if (!existsSync(entryPath)) {
+      errors.push(
+        `Missing entry file: ${entry.manifest.id} -> ${entry.manifest.entry}`,
+      )
+    }
+
+    if (entry.manifest.testFixture) {
+      const fixturePath = resolveManifestReferencePath(
+        entry.manifestPath,
+        entry.manifest.testFixture,
+      )
+      if (!existsSync(fixturePath)) {
+        errors.push(
+          `Missing test fixture file: ${entry.manifest.id} -> ${entry.manifest.testFixture}`,
+        )
+      }
+    }
   }
 
   return {
