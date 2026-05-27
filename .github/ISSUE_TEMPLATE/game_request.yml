@@ -1,0 +1,52 @@
+name: Game Request
+description: Request a new game idea for Game’s Camp / AI Game Forge
+title: "[Game Request]: "
+labels: ["game-request"]
+body:
+  - type: input
+    id: game_title
+    attributes:
+      label: Game title
+      placeholder: 森のぷに相撲
+    validations:
+      required: true
+
+  - type: dropdown
+    id: genre
+    attributes:
+      label: Genre
+      options:
+        - mini_action
+        - puzzle
+        - exploration
+        - srpg
+        - mystery_sandbox
+    validations:
+      required: true
+
+  - type: textarea
+    id: concept
+    attributes:
+      label: Concept
+      description: Describe the core play, mood, controls, and feeling.
+      placeholder: 森の小さな土俵で、ぷにぷにしたキャラが押し合う1分ゲーム。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target_device
+    attributes:
+      label: Target device
+      options:
+        - mobile
+        - pc
+        - both
+    validations:
+      required: true
+
+  - type: textarea
+    id: must_keep
+    attributes:
+      label: Must keep
+      description: Things that must not be broken.
+      placeholder: スマホで遊びやすい / 操作は簡単 / 1分以内で終わる
