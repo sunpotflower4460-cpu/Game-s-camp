@@ -18,6 +18,17 @@ Registry loading/validation used by compatibility scripts lives in:
 The generated JSON Schema is:
 `schemas/gameRecipe.schema.json`
 
+## Phase 4.5 Assembler Plan
+
+Phase 4.5 adds an Assembler Plan step.
+A GameRecipe is not rendered directly into game files yet.
+Instead, the forge creates an Assembler Plan that maps:
+- Recipe
+- Template
+- required Kit slots
+- optional Kit slots
+into a human/AI-readable plan.
+
 ## Core fields
 
 - `schemaVersion`: required. Example: `"0.1"`.

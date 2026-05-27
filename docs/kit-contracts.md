@@ -29,3 +29,9 @@ Runtime-neutral skeleton Kit files now live under `src/kits/`.
   - `string`: may define `default` (string only).
   - `boolean`: may define `default` (boolean only).
 - `min` / `max` are not allowed for `string` and `boolean` tunables.
+
+## Kit slot assignment
+
+In Phase 4.5, Kits can be assigned to Template slots by category.
+This is still a planning step.
+The Kit is not executed and is not rendered into gameplay.

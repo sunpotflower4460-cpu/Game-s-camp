@@ -36,26 +36,20 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 4: Mini Action Template skeleton plus Template Registry validation on top of Phase 3.
+Phase 4.5: Assembler planning skeleton.
 Allowed in this phase:
-- schema files
-- validation scripts
-- sample GameRecipe JSON
-- Kit manifest JSON inventory under kits/
-- Template manifest JSON inventory under templates/
-- Kit Registry loading and duplicate-id checks
-- Kit Registry entry/testFixture existence checks
-- Template Registry loading and duplicate-id checks
-- Template Registry template-file existence checks
-- Recipe compatibility checks against registry metadata
-- Runtime-neutral Kit skeleton files under src/kits/
-- Template placeholder files under templates/mini-action/files/
-- generated JSON Schema files
+- Assembler Plan types
+- Assembler Plan creation
+- Assembler Plan validation
+- Assembler Plan explanation
+- `plans/` design output
+- CI wiring for plan creation
 
 Not allowed in this phase:
 - Phaser
-- Puni Sumo gameplay implementation
-- playable Kit runtime implementation
-- Assembler
+- playable Puni Sumo
+- Template rendering
 - generated game output
 - custom game output
+- Playwright e2e tests
+- actual scene runtime

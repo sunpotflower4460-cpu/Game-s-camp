@@ -23,6 +23,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run validate:recipes
       - run: npm run validate:kits
+      - run: npm run validate:kit-registry
+      - run: npm run validate:template-registry
+      - run: npm run validate:compatibility
+      - run: npm run plan:assembler
       - run: npm run generate:schemas
       - name: Ensure schemas are up-to-date
         run: git diff --exit-code schemas/
