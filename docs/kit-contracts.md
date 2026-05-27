@@ -9,9 +9,9 @@
 - Rule Kit must not directly own rendering.
 - New game-specific behavior should not become a Kit unless reusable.
 
-## Phase 3 note
+## Phase 4 note
 
-Phase 3 keeps Kit Registry loading and duplicate Kit ID validation from Phase 2.5 and adds entry/testFixture file existence checks.
+Phase 4 keeps the Phase 3 Kit contract and registry validation behavior, while introducing separate Template Registry validation for template manifests/placeholders.
 The schema source of truth is:
 `src/forge/kit-registry/kitManifest.zod.ts`
 The registry logic is:

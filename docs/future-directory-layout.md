@@ -1,7 +1,7 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-As of Phase 3, GameRecipe/KitManifest schemas plus Kit Registry/recipe compatibility validation exist, and runtime-neutral Kit skeletons are available under `src/kits/`.
+As of Phase 4, GameRecipe/KitManifest/TemplateManifest schemas plus Kit/Template Registry and recipe compatibility validation exist, runtime-neutral Kit skeletons are available under `src/kits/`, and mini-action template placeholders are available under `templates/mini-action/files/`.
 
 ## Target structure
 
@@ -32,6 +32,10 @@ templates/
     template.manifest.json
     rules.md
     files/
+      GameScene.ts.tpl
+      TitleScene.ts.tpl
+      ResultScene.ts.tpl
+      gameConfig.ts.tpl
 generated/
   games/
     puni-sumo/
@@ -79,6 +83,7 @@ src/
   forge/
     recipe/
     kit-registry/
+    template-registry/
     compatibility/
     assembler/
     report/

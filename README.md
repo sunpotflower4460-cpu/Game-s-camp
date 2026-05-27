@@ -12,7 +12,7 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 3 adds runtime-neutral Puni Sumo Kit skeletons on top of the Kit Registry and recipe compatibility validation from Phase 2.5.
+Phase 4 adds the first Template skeleton (`mini-action`) on top of Phase 3 Kit Registry and compatibility foundations.
 
 This is not a game implementation yet.
 Phaser, playable Puni Sumo gameplay, and Assembler work are intentionally not included in this phase.
@@ -34,22 +34,25 @@ npm run typecheck   # type-check without emitting files
 
 ## Recipe and Kit validation
 
-Phase 3 validates GameRecipe, KitManifest, Kit Registry integrity (including entry/testFixture path existence), and recipe-to-kit compatibility.
+Phase 4 validates GameRecipe, KitManifest, TemplateManifest, Kit/Template Registry integrity, and recipe compatibility against both Kit and Template registries.
 
 ```bash
 npm run validate:recipes
 npm run validate:kits
 npm run validate:kit-registry
+npm run validate:template-registry
 npm run validate:recipe-compatibility
 npm run generate:schemas
 ```
 
 Current limits:
 
-- Kit Registry now checks duplicate Kit IDs, loadability, and entry/testFixture path existence.
-- Recipe compatibility checks enforce required Kit existence and Kit/recipe engine-template-input consistency.
+- Kit Registry checks duplicate Kit IDs, loadability, and entry/testFixture path existence.
+- Template Registry checks duplicate Template IDs and template file placeholder references.
+- Recipe compatibility checks enforce required Kit existence, Kit/recipe engine-template-input consistency, and recipe template existence in Template Registry.
 - Optional missing Kits are reported as warnings.
 - Kit implementations in `src/kits/` are runtime-neutral skeletons only.
+- Template files in `templates/mini-action/files/` are placeholders only (no generated output yet).
 
 ## Generated JSON Schemas
 
@@ -65,7 +68,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 3 verification checklist
+## Phase 4 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -75,6 +78,7 @@ npm run typecheck
 npm run validate:recipes
 npm run validate:kits
 npm run validate:kit-registry
+npm run validate:template-registry
 npm run validate:recipe-compatibility
 npm run generate:schemas
 npm run build

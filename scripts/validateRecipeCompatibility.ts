@@ -6,6 +6,11 @@ import {
   loadKitRegistry,
 } from "../src/forge/kit-registry/loadKitRegistry"
 import { validateKitRegistry } from "../src/forge/kit-registry/validateKitRegistry"
+import {
+  LoadTemplateRegistryError,
+  loadTemplateRegistry,
+} from "../src/forge/template-registry/loadTemplateRegistry"
+import { validateTemplateRegistry } from "../src/forge/template-registry/validateTemplateRegistry"
 import { gameRecipeSchema } from "../src/forge/recipe/gameRecipe.zod"
 import { ReadJsonFileError, readJsonFile } from "../src/forge/shared/readJsonFile"
 import { checkRecipeCompatibility } from "../src/forge/compatibility/checkRecipeCompatibility"
@@ -47,6 +52,25 @@ if (!registryValidation.ok) {
   process.exit(1)
 }
 
+let templateRegistry
+try {
+  templateRegistry = loadTemplateRegistry("templates")
+} catch (error) {
+  if (error instanceof LoadTemplateRegistryError) {
+    console.error(`[fail] RecipeCompatibility: ${error.message}`)
+    process.exit(1)
+  }
+  throw error
+}
+
+const templateRegistryValidation = validateTemplateRegistry(templateRegistry)
+if (!templateRegistryValidation.ok) {
+  for (const errorMessage of templateRegistryValidation.errors) {
+    console.error(`[fail] RecipeCompatibility: ${errorMessage}`)
+  }
+  process.exit(1)
+}
+
 const recipeFiles = findRecipeFiles("recipes")
 let hasError = false
 
@@ -71,6 +95,15 @@ for (const recipePath of recipeFiles) {
     hasError = true
     console.error(`[fail] RecipeCompatibility: ${recipePath} (invalid recipe schema)`)
     console.error(JSON.stringify(parsedRecipe.error.format(), null, 2))
+    continue
+  }
+
+  if (!templateRegistry.byId.has(parsedRecipe.data.template)) {
+    hasError = true
+    console.error(`[fail] RecipeCompatibility: ${recipePath}`)
+    console.error(
+      `  - RECIPE_TEMPLATE_NOT_FOUND: Template is not registered: ${parsedRecipe.data.template}`,
+    )
     continue
   }
 

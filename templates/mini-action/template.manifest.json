@@ -1,0 +1,70 @@
+{
+  "id": "template.miniAction.v1",
+  "name": "Mini Action Template Skeleton",
+  "genre": "mini_action",
+  "engine": "phaser",
+  "version": "1.0.0",
+  "description": "Genre-level skeleton for short mini-action games with template slots.",
+  "requiredSlots": [
+    {
+      "name": "playerController",
+      "category": "controller",
+      "required": true,
+      "description": "Primary player control kit."
+    },
+    {
+      "name": "mainStage",
+      "category": "stage",
+      "required": true,
+      "description": "Main playable stage/environment kit."
+    },
+    {
+      "name": "winLoseRule",
+      "category": "rule",
+      "required": true,
+      "description": "Core round win/lose judgement kit."
+    },
+    {
+      "name": "resultUi",
+      "category": "ui",
+      "required": true,
+      "description": "Result display kit for round/game outcome."
+    }
+  ],
+  "optionalSlots": [
+    {
+      "name": "mainCamera",
+      "category": "camera",
+      "required": false,
+      "description": "Optional camera behavior kit."
+    },
+    {
+      "name": "timerUi",
+      "category": "ui",
+      "required": false,
+      "description": "Optional timer UI kit."
+    },
+    {
+      "name": "visualFlavor",
+      "category": "visual",
+      "required": false,
+      "description": "Optional visual style kit."
+    },
+    {
+      "name": "impactAudio",
+      "category": "audio",
+      "required": false,
+      "description": "Optional impact/battle SFX kit."
+    }
+  ],
+  "files": {
+    "gameScene": "./files/GameScene.ts.tpl",
+    "titleScene": "./files/TitleScene.ts.tpl",
+    "resultScene": "./files/ResultScene.ts.tpl",
+    "gameConfig": "./files/gameConfig.ts.tpl"
+  },
+  "invariants": [
+    "TitleScene, GameScene, and ResultScene placeholders must be present.",
+    "Template slots define assembler wiring points only in this phase."
+  ]
+}

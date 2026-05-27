@@ -16,6 +16,7 @@
     "validate:kits": "tsx scripts/validateAllKits.ts",
     "validate:recipes": "tsx scripts/validateAllRecipes.ts",
     "validate:kit-registry": "tsx scripts/validateKitRegistry.ts",
+    "validate:template-registry": "tsx scripts/validateTemplateRegistry.ts",
     "validate:recipe-compatibility": "tsx scripts/validateRecipeCompatibility.ts"
   },
   "dependencies": {

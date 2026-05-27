@@ -3,16 +3,18 @@
 - GameRecipe is the game assembly blueprint.
 - AI must create or update GameRecipe before implementing.
 - Recipe must not contain free-form code.
-- Recipes are checked against the Kit Registry in Phase 2.5 for reference integrity and compatibility.
+- Recipes are checked against Kit and Template registries for reference integrity and compatibility.
 - Recipe should describe genre, target device, engine, template, input, rules, requiredKits, and tuning.
 
-## Phase 2.5 note
+## Phase 4 note
 
-Phase 2.5 keeps the GameRecipe schema validator and adds compatibility checks against registered Kit manifests.
+Phase 4 keeps the GameRecipe schema validator, compatibility checks against registered Kit manifests, and adds template registry existence checks for `recipe.template`.
 The schema source of truth is:
 `src/forge/recipe/gameRecipe.zod.ts`
 Compatibility checks live in:
 `src/forge/compatibility/checkRecipeKitReferences.ts` and `src/forge/compatibility/checkRecipeCompatibility.ts`
+Registry loading/validation used by compatibility scripts lives in:
+`src/forge/template-registry/loadTemplateRegistry.ts` and `src/forge/template-registry/validateTemplateRegistry.ts`
 The generated JSON Schema is:
 `schemas/gameRecipe.schema.json`
 
@@ -41,6 +43,7 @@ The generated JSON Schema is:
 - Duplicate kit IDs across recipe references are rejected.
 - Required kits must exist in the Kit Registry.
 - Recipe `template` / `engine` / `input` must be compatible with each referenced Kit manifest.
+- Recipe `template` must exist in the Template Registry.
 
 ## Free-form code policy
 
