@@ -65,7 +65,6 @@ export function checkRecipeCompatibility(
 
     issues.push(...checkRule(recipe, entry, "templates", recipe.template))
     issues.push(...checkRule(recipe, entry, "inputs", recipe.input))
-    issues.push(...checkRule(recipe, entry, "engines", recipe.engine))
   }
 
   return createCompatibilityResult(issues)
