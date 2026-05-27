@@ -10,7 +10,7 @@ It is an AI-oriented game creation forge.
 1. Do not implement a game before creating or updating a GameRecipe.
 2. Prefer existing Kits before creating new code.
 3. New reusable parts must be added as Kits.
-4. Game-specific logic belongs under src/games/.
+4. Game-specific logic is expected to live under src/games/ once the runtime structure is introduced.
 5. Generated files must live under generated/.
 6. Human/custom adjustments must live under custom/.
 7. Never overwrite custom/ from an assembler or generator.

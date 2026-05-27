@@ -10,7 +10,7 @@ No validation code is added in this Phase 0 PR.
 - kit validation succeeds
 - compatibility succeeds
 - app boots
-- no critical console error
+- no critical console errors
 - mobile layout is not critically broken
 - player can start
 - win/lose/result can be reached

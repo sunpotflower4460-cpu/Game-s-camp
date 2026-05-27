@@ -3,7 +3,7 @@
 - GameRecipe is the game assembly blueprint.
 - AI must create or update GameRecipe before implementing.
 - Recipe must not contain free-form code.
-- Recipe must reference existing Kit IDs.
+- In future phases, Recipe should reference Kit IDs from the Kit Registry. During Phase 0, sample Kit IDs are placeholders and missing Kits should be declared as KitProposal candidates.
 - Recipe should describe genre, target device, engine, template, input, rules, requiredKits, and tuning.
 
 ## Sample GameRecipe JSON
