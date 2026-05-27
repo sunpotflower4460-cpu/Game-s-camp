@@ -26,5 +26,6 @@
     }
   },
   "invariants": ["mustNotCreateWinCondition"],
-  "entry": "src/kits/controllers/puniPush/PuniPushController.ts"
+  "entry": "src/kits/controllers/puniPush/PuniPushController.ts",
+  "testFixture": "src/kits/controllers/puniPush/PuniPushController.fixture.ts"
 }

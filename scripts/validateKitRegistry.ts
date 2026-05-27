@@ -20,7 +20,7 @@ try {
 const result = validateKitRegistry(registry)
 
 if (result.ok) {
-  console.log(`[ok] KitRegistry: ${rootDir}`)
+  console.log(`[ok] KitRegistry: ${rootDir} (ids + entry/testFixture references)`)
 } else {
   for (const errorMessage of result.errors) {
     console.error(`[fail] KitRegistry: ${errorMessage}`)

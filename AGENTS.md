@@ -36,20 +36,22 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 2.5: Kit Registry and recipe compatibility checks.
+Phase 3: Runtime-neutral Puni Sumo Kit skeletons plus Kit Registry/compatibility checks.
 Allowed in this phase:
 - schema files
 - validation scripts
 - sample GameRecipe JSON
 - Kit manifest JSON inventory under kits/
 - Kit Registry loading and duplicate-id checks
+- Kit Registry entry/testFixture existence checks
 - Recipe compatibility checks against registry metadata
+- Runtime-neutral Kit skeleton files under src/kits/
 - generated JSON Schema files
 
 Not allowed in this phase:
 - Phaser
 - Puni Sumo gameplay implementation
-- actual Kit implementation
+- playable Kit runtime implementation
 - Assembler
 - generated game output
 - custom game output

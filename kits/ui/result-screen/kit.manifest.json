@@ -20,5 +20,6 @@
     }
   },
   "invariants": ["mustNotAlterPhysics"],
-  "entry": "src/kits/ui/resultScreen/ResultScreenUI.ts"
+  "entry": "src/kits/ui/resultScreen/ResultScreen.ts",
+  "testFixture": "src/kits/ui/resultScreen/ResultScreen.fixture.ts"
 }

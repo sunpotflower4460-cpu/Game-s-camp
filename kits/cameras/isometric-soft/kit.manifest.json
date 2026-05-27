@@ -20,5 +20,6 @@
     }
   },
   "invariants": ["mustNotOwnWinCondition"],
-  "entry": "src/kits/cameras/isometricSoft/IsometricSoftCamera.ts"
+  "entry": "src/kits/cameras/isometricSoft/IsometricSoftCamera.ts",
+  "testFixture": "src/kits/cameras/isometricSoft/IsometricSoftCamera.fixture.ts"
 }

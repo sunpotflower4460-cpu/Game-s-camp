@@ -11,12 +11,13 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 2.5.
+- This PR is Phase 3.
 - GameRecipe and KitManifest schema/validator foundations are available.
-- Kit Registry loading/validation and recipe compatibility checks are in scope.
+- Kit Registry loading/validation (including entry/testFixture path checks) and recipe compatibility checks are in scope.
+- Runtime-neutral Kit skeleton files under `src/kits/` are in scope.
 - Do not add Phaser yet.
-- Do not implement Puni Sumo yet.
-- Do not add actual Kit implementation or Assembler logic yet.
+- Do not implement playable Puni Sumo yet.
+- Do not add actual Kit runtime implementation or Assembler logic yet.
 
 ## Currently available commands
 
