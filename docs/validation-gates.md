@@ -8,7 +8,7 @@ No validation code is added in this Phase 0 PR.
 - build succeeds
 - recipe validation succeeds
 - kit validation succeeds
-- compatibility succeeds
+- compatibility check succeeds
 - app boots
 - no critical console errors
 - mobile layout is not critically broken
@@ -23,3 +23,39 @@ No validation code is added in this Phase 0 PR.
 - visual density is comfortable
 - play time matches target
 - tutorial or guidance is sufficient
+
+## Validation categories
+
+### Machine-check
+
+Checks that should eventually run through scripts or CI.
+
+- build succeeds
+- typecheck succeeds
+- lint succeeds
+- recipe validation succeeds
+- kit validation succeeds
+- compatibility check succeeds
+- no critical console errors
+
+### Automated e2e-check
+
+Checks that should eventually run through Playwright or browser automation.
+
+- app boots
+- game canvas/root appears
+- mobile viewport smoke test passes
+- player can start
+- timer can progress
+- result screen can be reached
+
+### Human-check
+
+Checks that require human playtest or creative judgment.
+
+- controls feel responsive
+- UI is readable
+- visual density is comfortable
+- play time feels right
+- tutorial or guidance is sufficient
+- the game feels fun enough for MVP
