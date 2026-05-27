@@ -36,7 +36,19 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 1.
-Vite + React + TypeScript forge shell is now available.
-Runtime placeholder files exist under `src/runtime/`.
-Do not add Phaser, GameRecipe validator, Kit Registry, Assembler, or Puni Sumo implementation in this phase.
+Phase 2: GameRecipe and KitManifest schemas.
+Allowed in this phase:
+- schema files
+- validation scripts
+- sample GameRecipe JSON
+- example KitManifest JSON
+- generated JSON Schema files
+
+Not allowed in this phase:
+- Phaser
+- Puni Sumo gameplay implementation
+- actual Kit implementation
+- Kit Registry implementation beyond manifest shape validation
+- Assembler
+- generated game output
+- custom game output

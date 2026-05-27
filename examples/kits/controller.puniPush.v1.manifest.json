@@ -1,0 +1,38 @@
+{
+  "id": "controller.puniPush.v1",
+  "name": "Puni Push Controller",
+  "category": "controller",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Placeholder manifest for a future soft pushing controller used by Puni Sumo.",
+  "provides": ["playerMovement", "pushForce"],
+  "requires": ["input.pointerOrKeyboard"],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"],
+    "inputs": ["mobile_drag", "keyboard_wasd"],
+    "cameras": ["camera.isometricSoft.v1"]
+  },
+  "tunables": {
+    "moveSpeed": {
+      "type": "number",
+      "default": 180,
+      "min": 60,
+      "max": 360,
+      "description": "Base movement speed."
+    },
+    "pushPower": {
+      "type": "number",
+      "default": 1.2,
+      "min": 0.2,
+      "max": 3,
+      "description": "Relative push strength."
+    }
+  },
+  "invariants": [
+    "mustNotControlCamera",
+    "mustNotCreateWinCondition",
+    "mustUseRuntimeInputManager"
+  ],
+  "entry": "src/kits/controllers/puniPush/PuniPushController.ts",
+  "testFixture": "src/kits/controllers/puniPush/PuniPushController.fixture.ts"
+}
