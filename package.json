@@ -9,6 +9,7 @@
   "packageManager": "npm@10.9.0",
   "scripts": {
     "build": "tsc -b && vite build",
+    "check:generated-custom-safety": "tsx scripts/checkGeneratedCustomSafety.ts",
     "dev": "vite",
     "generate:schemas": "tsx scripts/generateSchemas.ts",
     "plan:assembler": "tsx scripts/createAssemblerPlan.ts",

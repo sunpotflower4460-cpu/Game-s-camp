@@ -17,3 +17,11 @@ Thumbs.db
 # Editor directories
 .idea/
 .vscode/
+
+# Forge artifacts intentionally tracked:
+# - plans/
+# - generated/
+# - custom/
+# - reports/
+#
+# Do not ignore these directories unless the artifact policy changes.

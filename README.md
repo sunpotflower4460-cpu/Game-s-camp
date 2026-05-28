@@ -12,10 +12,16 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 5.1 adds semantic assignment cleanup on top of the Phase 5 safe template renderer dry-run.
+Phase 5.5 adds a protected custom layer skeleton and generated/custom safety guard on top of the Phase 5 safe template renderer dry-run and Phase 5.1 semantic assignment cleanup.
 
 This is not a game implementation yet.
 Phaser and playable Puni Sumo gameplay are intentionally not included in this phase.
+
+## Non-negotiable Rules
+
+- Renderer and assembler scripts must never write into `custom/`.
+- `generated/` can be regenerated.
+- `custom/` is protected and persistent.
 
 ## Phase 5.1 semantic assignment cleanup
 
@@ -89,6 +95,25 @@ Current limits:
 - Phaser integration is still deferred.
 - `custom/` output is intentionally deferred.
 
+## Custom layer and generated/custom safety
+Phase 5.5 introduces a protected `custom/` layer and a generated/custom safety check.
+
+## Current Phase
+Phase 5.5: Custom layer skeleton and generated/custom safety guard.
+Allowed in this phase:
+- protected `custom/games/puni-sumo/` skeleton files
+- generated/custom safety check
+- safety report under `reports/`
+- CI wiring for safety checks
+- documentation updates for generated/custom ownership
+Not allowed in this phase:
+- Phaser
+- playable Puni Sumo
+- runtime wiring
+- renderer or assembler writing into `custom/`
+- Playwright e2e tests
+- dependency upgrade refactors
+
 ## Generated JSON Schemas
 
 The files under `schemas/` are generated from the Zod sources in `src/forge/`.
@@ -103,7 +128,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 5 verification checklist
+## Phase 5.5 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -117,6 +142,7 @@ npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
 npm run render:dry-run
+npm run check:generated-custom-safety
 npm run generate:schemas
 npm run build
 ```

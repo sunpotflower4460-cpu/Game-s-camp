@@ -71,3 +71,12 @@ Example:
 - `resultUi` requires `resultScreen`
 - `ui.roundTimer.v1` provides `roundTimerHud`
 - This assignment must fail.
+
+## Generated/custom safety
+
+Phase 5.5 adds a generated/custom safety check.
+The check verifies:
+- `generated/` exists,
+- `custom/` exists,
+- neither directory is nested inside the other,
+- renderer/assembler scripts do not write into `custom/`.

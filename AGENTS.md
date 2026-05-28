@@ -36,20 +36,18 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 5.1: Semantic assignment and UI status cleanup.
+Phase 5.5: Custom layer skeleton and generated/custom safety guard.
 Allowed in this phase:
-- UI status text updates
-- Template slot `requiresProvides`
-- Kit manifest `provides` cleanup
-- Assembler semantic slot assignment
-- Assembler Plan validation hardening
-- regenerated plans/
-- regenerated generated/
+- protected `custom/games/puni-sumo/` skeleton files
+- generated/custom safety check
+- safety report under `reports/`
+- CI wiring for safety checks
+- documentation updates for generated/custom ownership
 
 Not allowed in this phase:
 - Phaser
 - playable Puni Sumo
 - runtime wiring
-- custom game output
+- renderer or assembler writing into `custom/`
 - Playwright e2e tests
 - dependency upgrade refactors
