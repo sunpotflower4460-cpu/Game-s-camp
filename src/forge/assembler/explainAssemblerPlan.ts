@@ -1,5 +1,16 @@
 import type { AssemblerPlan } from "./assemblerPlan.types"
 
+function formatAssignmentCategory(assignment: {
+  category: string
+  requiresProvides?: string[]
+}): string {
+  const requiresProvides = assignment.requiresProvides ?? []
+  if (requiresProvides.length === 0) {
+    return assignment.category
+  }
+  return `${assignment.category}, requires: ${requiresProvides.join(", ")}`
+}
+
 export function explainAssemblerPlan(plan: AssemblerPlan): string {
   const lines: string[] = []
 
@@ -12,14 +23,18 @@ export function explainAssemblerPlan(plan: AssemblerPlan): string {
   lines.push("## Required assignments")
 
   for (const assignment of plan.requiredAssignments) {
-    lines.push(`- ${assignment.slotName} (${assignment.category}) -> ${assignment.kitId}`)
+    lines.push(
+      `- ${assignment.slotName} (${formatAssignmentCategory(assignment)}) -> ${assignment.kitId}`,
+    )
   }
 
   if (plan.optionalAssignments.length > 0) {
     lines.push("")
     lines.push("## Optional assignments")
     for (const assignment of plan.optionalAssignments) {
-      lines.push(`- ${assignment.slotName} (${assignment.category}) -> ${assignment.kitId}`)
+      lines.push(
+        `- ${assignment.slotName} (${formatAssignmentCategory(assignment)}) -> ${assignment.kitId}`,
+      )
     }
   }
 

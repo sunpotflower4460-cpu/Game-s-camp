@@ -65,6 +65,13 @@
               "description": {
                 "type": "string",
                 "minLength": 1
+              },
+              "requiresProvides": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
               }
             },
             "required": [

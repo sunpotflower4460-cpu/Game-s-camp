@@ -35,3 +35,9 @@ Runtime-neutral skeleton Kit files now live under `src/kits/`.
 In Phase 4.5, Kits can be assigned to Template slots by category.
 This is still a planning step.
 The Kit is not executed and is not rendered into gameplay.
+
+## Semantic slot assignment
+
+Template slots may define `requiresProvides`.
+When a slot defines `requiresProvides`, the Assembler must select a Kit whose manifest `provides` includes all required capabilities.
+This prevents category-only mismatches such as assigning a timer UI kit to a result UI slot.

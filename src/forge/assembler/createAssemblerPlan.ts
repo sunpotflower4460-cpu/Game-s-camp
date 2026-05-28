@@ -4,6 +4,13 @@ import type { TemplateRegistry, TemplateRegistryEntry } from "../template-regist
 
 import type { AssemblerPlan, AssemblerSlotAssignment } from "./assemblerPlan.types"
 
+type SlotForAssignment = {
+  name: string
+  category: string
+  required: boolean
+  requiresProvides: string[]
+}
+
 function collectReferencedKitEntries(recipe: GameRecipe, kitRegistry: KitRegistry): KitRegistryEntry[] {
   const entries: KitRegistryEntry[] = []
   const seen = new Set<string>()
@@ -23,24 +30,43 @@ function collectReferencedKitEntries(recipe: GameRecipe, kitRegistry: KitRegistr
 }
 
 function createAssignment(
-  slot: { name: string; category: string; required: boolean },
+  slot: SlotForAssignment,
   kit: KitRegistryEntry,
 ): AssemblerSlotAssignment {
   return {
     slotName: slot.name,
     category: slot.category,
     required: slot.required,
+    requiresProvides: slot.requiresProvides,
+    assignedKitProvides: kit.manifest.provides,
     kitId: kit.manifest.id,
     manifestPath: kit.manifestPath,
   }
 }
 
+function kitSatisfiesSlot(slot: SlotForAssignment, kit: KitRegistryEntry): boolean {
+  if (kit.manifest.category !== slot.category) {
+    return false
+  }
+  if (slot.requiresProvides.length === 0) {
+    return true
+  }
+  return slot.requiresProvides.every((requiredProvide) =>
+    kit.manifest.provides.includes(requiredProvide),
+  )
+}
+
 function explainUnresolvedSlot(
-  slot: { name: string; category: string },
+  slot: SlotForAssignment,
   hasCategoryCandidates: boolean,
+  hasSemanticCandidates: boolean,
 ): string {
   if (!hasCategoryCandidates) {
     return `No kit with category "${slot.category}" is listed in the recipe's requiredKits or optionalKits.`
+  }
+
+  if (!hasSemanticCandidates && slot.requiresProvides.length > 0) {
+    return `No kit with category "${slot.category}" satisfies required provides [${slot.requiresProvides.join(", ")}].`
   }
 
   return `No unassigned kit remains for category "${slot.category}".`
@@ -48,7 +74,7 @@ function explainUnresolvedSlot(
 
 function noteMultipleCandidates(
   notes: string[],
-  slot: { name: string; category: string },
+  slot: SlotForAssignment,
   selectedKitId: string,
   candidates: KitRegistryEntry[],
 ): void {
@@ -65,7 +91,9 @@ function noteMultipleCandidates(
   }
 
   notes.push(
-    `Slot "${slot.name}" (${slot.category}) selected ${selectedKitId}; other candidates: ${alternatives.join(", ")}`,
+    `Slot "${slot.name}" (${slot.category}${
+      slot.requiresProvides.length > 0 ? `, requires: ${slot.requiresProvides.join(", ")}` : ""
+    }) selected ${selectedKitId}; other candidates: ${alternatives.join(", ")}`,
   )
 }
 
@@ -86,7 +114,7 @@ export function createAssemblerPlan(args: {
   const templateEntry = getTemplateEntry(recipe, templateRegistry)
   const referencedKitEntries = collectReferencedKitEntries(recipe, kitRegistry)
   const notes: string[] = [
-    "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits).",
+    "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits), matching both slot category and required provides.",
   ]
   const assignedKitIds = new Set<string>()
   const requiredAssignments: AssemblerSlotAssignment[] = []
@@ -94,14 +122,15 @@ export function createAssemblerPlan(args: {
   const unresolvedRequiredSlots: AssemblerPlan["unresolvedRequiredSlots"] = []
 
   const assignSlot = (
-    slot: { name: string; category: string; required: boolean },
+    slot: SlotForAssignment,
     target: AssemblerSlotAssignment[],
     unresolvedTarget?: AssemblerPlan["unresolvedRequiredSlots"],
   ): void => {
     const categoryCandidates = referencedKitEntries.filter(
       (entry) => entry.manifest.category === slot.category,
     )
-    const unassignedCandidates = categoryCandidates.filter(
+    const semanticCandidates = categoryCandidates.filter((entry) => kitSatisfiesSlot(slot, entry))
+    const unassignedCandidates = semanticCandidates.filter(
       (entry) => !assignedKitIds.has(entry.manifest.id),
     )
     const firstAvailableCandidate = unassignedCandidates[0]
@@ -111,7 +140,11 @@ export function createAssemblerPlan(args: {
         unresolvedTarget.push({
           slotName: slot.name,
           category: slot.category,
-          reason: explainUnresolvedSlot(slot, categoryCandidates.length > 0),
+          reason: explainUnresolvedSlot(
+            slot,
+            categoryCandidates.length > 0,
+            semanticCandidates.length > 0,
+          ),
         })
       }
       return
@@ -119,7 +152,14 @@ export function createAssemblerPlan(args: {
 
     assignedKitIds.add(firstAvailableCandidate.manifest.id)
     target.push(createAssignment(slot, firstAvailableCandidate))
-    noteMultipleCandidates(notes, slot, firstAvailableCandidate.manifest.id, categoryCandidates)
+    notes.push(
+      `Slot "${slot.name}" assigned ${firstAvailableCandidate.manifest.id} by category "${slot.category}"${
+        slot.requiresProvides.length > 0
+          ? ` and requires provides [${slot.requiresProvides.join(", ")}]`
+          : ""
+      }.`,
+    )
+    noteMultipleCandidates(notes, slot, firstAvailableCandidate.manifest.id, semanticCandidates)
   }
 
   for (const requiredSlot of templateEntry.manifest.requiredSlots) {

@@ -35,6 +35,15 @@ Phase 5 reads the Assembler Plan and template placeholder files, then writes saf
 The renderer performs minimal token replacement only and validates that no unresolved placeholders remain.
 This phase still does not wire output into runtime and does not create playable gameplay.
 
+## Phase 5.1 semantic assignment
+
+Phase 5.1 strengthens Assembler planning by matching Template slots to Kit capabilities.
+The Assembler now considers:
+- slot category,
+- slot `requiresProvides`,
+- Kit manifest `provides`,
+- Recipe required/optional Kit order.
+
 ## Core fields
 
 - `schemaVersion`: required. Example: `"0.1"`.

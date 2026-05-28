@@ -5,7 +5,7 @@
   "engine": "phaser",
   "version": "0.1.0",
   "description": "Camera kit manifest for soft isometric-like framing.",
-  "provides": ["cameraFollow"],
+  "provides": ["isometricCamera"],
   "requires": ["runtime.scene"],
   "compatibleWith": {
     "templates": ["template.miniAction.v1"],
