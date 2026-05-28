@@ -44,6 +44,13 @@ The Assembler now considers:
 - Kit manifest `provides`,
 - Recipe required/optional Kit order.
 
+## Phase 5.5 custom layer
+
+The custom layer is not part of GameRecipe yet.
+For now, it is a protected filesystem area for future custom adjustments.
+Recipe remains the source of generative intent.  
+Custom files are persistent local adjustments that must not be overwritten by generation.
+
 ## Core fields
 
 - `schemaVersion`: required. Example: `"0.1"`.

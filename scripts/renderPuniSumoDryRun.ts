@@ -171,7 +171,7 @@ const report = [
   "## Scope notes",
   "- Phaser runtime integration: not included",
   "- Playable game wiring: not included",
-  "- custom/ output generation: not included",
+  "- custom output generation: not included",
   "",
 ]
 

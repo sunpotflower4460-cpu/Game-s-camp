@@ -28,8 +28,11 @@ jobs:
       - run: npm run validate:compatibility
       - run: npm run plan:assembler
       - run: npm run render:dry-run
+      - run: npm run check:generated-custom-safety
       - name: Ensure generated outputs are up-to-date
         run: git diff --exit-code generated/
+      - name: Ensure reports are up-to-date
+        run: git diff --exit-code reports/
       - run: npm run generate:schemas
       - name: Ensure schemas are up-to-date
         run: git diff --exit-code schemas/

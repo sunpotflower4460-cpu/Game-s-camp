@@ -48,7 +48,7 @@ custom/
     puni-sumo/
       customRules.ts
       customVisuals.ts
-      notes.md
+      customNotes.md
 src/
   app/
   kits/
@@ -117,3 +117,9 @@ They are planning artifacts used before runtime-wired `generated/` output exists
 
 `generated/games/puni-sumo/` now contains dry-run placeholder outputs rendered from `.tpl` files.
 These are still non-playable and not wired into runtime.
+
+## Phase 5.5 custom/
+
+Phase 5.5 introduces the protected custom layer.
+`custom/games/puni-sumo/` contains hand-authored or AI-authored files that must survive regeneration.
+Renderer and assembler scripts must not write into `custom/`.
