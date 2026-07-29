@@ -33,6 +33,34 @@ function mentionsCustom(text: string): boolean {
   return text.includes("custom/") || text.includes('"custom"') || text.includes("'custom'")
 }
 
+// Resolves simple `const NAME = "literal"` / `let NAME = "literal"` / `var NAME = "literal"`
+// bindings so a write call that references a local variable instead of an inline string —
+// e.g. `const root = "custom"; writeFileSync(join(root, "rules.ts"), ...)` — can still be
+// checked against the variable's actual value. This is a single-hop, same-file resolution only
+// (not real dataflow analysis), but it closes the most obvious way to defeat a purely
+// inline-literal text scan without chasing arbitrarily obfuscated indirection.
+function collectLocalStringConstants(source: string): Map<string, string> {
+  const constants = new Map<string, string>()
+  const declarationPattern = /\b(?:const|let|var)\s+([a-zA-Z_$][\w$]*)\s*=\s*(["'])((?:(?!\2).)*)\2/g
+  let match: RegExpExecArray | null
+  while ((match = declarationPattern.exec(source)) !== null) {
+    constants.set(match[1], match[3])
+  }
+  return constants
+}
+
+function argsIndirectlyMentionCustom(args: string, constants: Map<string, string>): boolean {
+  const identifierPattern = /\b[a-zA-Z_$][\w$]*\b/g
+  let match: RegExpExecArray | null
+  while ((match = identifierPattern.exec(args)) !== null) {
+    const value = constants.get(match[0])
+    if (value !== undefined && mentionsCustom(`"${value}"`)) {
+      return true
+    }
+  }
+  return false
+}
+
 // Extracts the balanced-paren argument text starting at the `(` found at `openParenIndex`, so a
 // nested call like `writeFileSync(join("custom", "rules.ts"), contents)` is inspected as a whole
 // instead of stopping at the first `)` (which belongs to the inner `join(...)`).
@@ -66,6 +94,7 @@ function extractBalancedArgs(source: string, openParenIndex: number): string {
 // is still a text heuristic (not real path/AST analysis), but it catches the common computed-path
 // case — e.g. `writeFileSync(join("custom", "rules.ts"), ...)` — without over-triggering.
 function hasSuspiciousCustomWrite(source: string): boolean {
+  const localConstants = collectLocalStringConstants(source)
   for (const api of WRITE_APIS) {
     // Only treat an occurrence as a genuine call site if the API name is immediately followed
     // (modulo whitespace) by "(" — otherwise a bare mention (e.g. inside an `import { ... }`
@@ -76,7 +105,7 @@ function hasSuspiciousCustomWrite(source: string): boolean {
     while ((match = callPattern.exec(source)) !== null) {
       const openParenIndex = match.index + match[0].length - 1
       const args = extractBalancedArgs(source, openParenIndex)
-      if (mentionsCustom(args)) {
+      if (mentionsCustom(args) || argsIndirectlyMentionCustom(args, localConstants)) {
         return true
       }
     }

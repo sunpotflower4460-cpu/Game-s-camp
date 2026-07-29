@@ -75,6 +75,28 @@ describe("checkGeneratedCustomSafety", () => {
     expect(result.issues.some((issue) => issue.code === "script_mentions_custom_write")).toBe(true)
   })
 
+  it("flags a script writing a custom path referenced through a local variable", () => {
+    const scriptPath = writeScript(
+      "unsafe-indirect.ts",
+      [
+        `import { writeFileSync } from "node:fs"`,
+        `import { join } from "node:path"`,
+        `const root = "custom"`,
+        `writeFileSync(join(root, "rules.ts"), "content")`,
+        ``,
+      ].join("\n"),
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_custom_write")).toBe(true)
+  })
+
   it("does not flag a script that merely passes a customDir option unrelated to its own writes", () => {
     const scriptPath = writeScript(
       "runner-like.ts",

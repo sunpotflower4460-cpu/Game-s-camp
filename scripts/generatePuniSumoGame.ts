@@ -128,6 +128,11 @@ if (duplicateOutputNames.length > 0) {
     `Template file mapping produces colliding output filenames, so one logical output would silently overwrite another: ${duplicateOutputNames.join(", ")} (${templateEntry.manifestPath})`,
   )
 }
+if (expectedFileNames.includes(REPORT_FILENAME)) {
+  fail(
+    `Template file mapping produces an output named "${REPORT_FILENAME}", which is reserved for the generation report and would be silently overwritten by it: ${templateEntry.manifestPath}`,
+  )
+}
 
 let kitRegistry
 try {
