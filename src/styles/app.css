@@ -132,8 +132,8 @@ body {
 }
 
 .phaser-game-host__canvas {
+  /* aspect-ratio is set inline by PhaserGameHost from its width/height props */
   width: 100%;
-  aspect-ratio: 390 / 640;
   border-radius: 4px;
   overflow: hidden;
   background: #0d1a10;
@@ -163,7 +163,7 @@ body {
 
 .phaser-game-host__error-detail {
   color: var(--text-muted);
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .phaser-game-host__error button {

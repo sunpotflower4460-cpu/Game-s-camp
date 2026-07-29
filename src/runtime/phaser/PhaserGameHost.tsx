@@ -35,11 +35,23 @@ function statusMessage(status: RuntimeStatus, definition: GeneratedGameDefinitio
   }
 }
 
+const DEFAULT_WIDTH = 720
+const DEFAULT_HEIGHT = 1280
+
 function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGameHostProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const gameRef = useRef<Phaser.Game | null>(null)
   const [snapshot, setSnapshot] = useState<RuntimeSnapshot>(createIdleRuntimeSnapshot())
   const [retryToken, setRetryToken] = useState(0)
+
+  // Keeping the latest callback in a ref (instead of the effect's dependency array) means an
+  // inline `onStatusChange={(s) => ...}` prop can't change identity on every emitted status and
+  // retrigger the effect below, which would otherwise destroy and recreate the Phaser game in a
+  // loading/ready reboot loop.
+  const onStatusChangeRef = useRef(onStatusChange)
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange
+  }, [onStatusChange])
 
   useEffect(() => {
     const container = containerRef.current
@@ -53,7 +65,7 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
         return
       }
       setSnapshot(next)
-      onStatusChange?.(next)
+      onStatusChangeRef.current?.(next)
     }
 
     // Defensive cleanup: guards against a stray canvas surviving a prior instance's
@@ -72,6 +84,20 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
       updateSnapshot({ status, gameId: definition.gameId, message: statusMessage(status, definition) })
     }
 
+    // Phaser's boot sequence and scene lifecycle callbacks (e.g. `create()`) run
+    // asynchronously/inside Phaser's own render loop, outside the synchronous `try` block below.
+    // An exception thrown there still reaches the browser as an uncaught error, so a scoped
+    // `window` listener is the only reliable place to route those failures into the error state.
+    const handleWindowError = (event: ErrorEvent) => {
+      updateSnapshot({
+        status: "error",
+        gameId: definition.gameId,
+        message: statusMessage("error", definition),
+        error: { message: event.message, cause: event.error },
+      })
+    }
+    window.addEventListener("error", handleWindowError)
+
     try {
       const config = createPhaserConfig({ parent: container, definition, width, height })
       game = createPhaserGame(config)
@@ -88,17 +114,25 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
 
     return () => {
       cancelled = true
+      window.removeEventListener("error", handleWindowError)
       if (game) {
         game.events.off(RUNTIME_STATUS_EVENT, handleStatus)
       }
       destroyPhaserGame(gameRef.current)
       gameRef.current = null
     }
-  }, [definition, width, height, onStatusChange, retryToken])
+  }, [definition, width, height, retryToken])
+
+  const aspectRatio = `${width ?? DEFAULT_WIDTH} / ${height ?? DEFAULT_HEIGHT}`
 
   return (
     <div className="phaser-game-host">
-      <div ref={containerRef} className="phaser-game-host__canvas" data-runtime-status={snapshot.status} />
+      <div
+        ref={containerRef}
+        className="phaser-game-host__canvas"
+        data-runtime-status={snapshot.status}
+        style={{ aspectRatio }}
+      />
       {snapshot.status === "error" ? (
         <div className="phaser-game-host__error" role="alert">
           <p className="phaser-game-host__error-title">The game runtime failed to start.</p>

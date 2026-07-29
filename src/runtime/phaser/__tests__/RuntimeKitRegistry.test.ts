@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { RuntimeKitResolutionError, createRuntimeKitRegistry } from "../RuntimeKitRegistry"
+import {
+  RuntimeKitIdentityMismatchError,
+  RuntimeKitResolutionError,
+  createRuntimeKitRegistry,
+} from "../RuntimeKitRegistry"
 import type { RuntimeKitAdapter } from "../runtimeKit.types"
 
 describe("RuntimeKitRegistry", () => {
@@ -17,6 +21,16 @@ describe("RuntimeKitRegistry", () => {
 
     expect(() => registry.resolve("controller.unknown.v1")).toThrow(RuntimeKitResolutionError)
     expect(() => registry.resolve("controller.unknown.v1")).toThrow(/controller\.unknown\.v1/)
+  })
+
+  it("rejects a factory whose adapter identifies as a different Kit ID than it was registered under", () => {
+    const registry = createRuntimeKitRegistry()
+    registry.register("controller.puniPush.v1", () => ({ kitId: "controller.puniOpponentAI.v1" }))
+
+    expect(() => registry.resolve("controller.puniPush.v1")).toThrow(RuntimeKitIdentityMismatchError)
+    expect(() => registry.resolve("controller.puniPush.v1")).toThrow(
+      /controller\.puniPush\.v1.*controller\.puniOpponentAI\.v1/s,
+    )
   })
 
   it("rejects registering the same Kit ID twice", () => {

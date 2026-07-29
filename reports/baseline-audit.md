@@ -26,7 +26,7 @@ This audit captures the state of the repository **before** any Phase 6.0 work, p
 | `npm run render:dry-run` | OK | Regenerated `generated/games/puni-sumo/*` (GameScene.ts, TitleScene.ts, ResultScene.ts, gameConfig.ts, render-report.md placeholders) with no diff against committed files. |
 | `npm run check:generated-custom-safety` | OK | `Result: OK — No issues found.` |
 | `npm run generate:schemas` | OK | Regenerated `schemas/*.schema.json` with no diff against committed files. |
-| `git status --porcelain` after regeneration | clean | Confirms `generated/`, `plans/`, `schemas/`, `reports/` are reproducible from source — no drift at baseline. |
+| `git status --porcelain` after regeneration | clean | Confirms `generated/` (via `render:dry-run`), `plans/` (via `plan:assembler`), `schemas/` (via `generate:schemas`), and `reports/generated-custom-safety.md` (via `check:generated-custom-safety`, which writes that file as a side effect) are all reproducible from source — no drift at baseline. This does not cover any other file under `reports/`, since no command regenerates them. |
 | `npm run build` | OK | `tsc -b && vite build` → `dist/` produced, 143.18 kB JS bundle (46.27 kB gzip), build time ~223ms. |
 
 No `npm run lint`, `npm run test`, or `npm run test:e2e` scripts exist yet at baseline

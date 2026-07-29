@@ -10,6 +10,22 @@ export class RuntimeKitResolutionError extends Error {
   }
 }
 
+export class RuntimeKitIdentityMismatchError extends Error {
+  readonly expectedKitId: string
+  readonly actualKitId: string
+
+  constructor(expectedKitId: string, actualKitId: string) {
+    super(
+      `Runtime Kit "${expectedKitId}" resolved to an adapter identifying itself as ` +
+        `"${actualKitId}". A factory must always produce an adapter whose kitId matches the ` +
+        `ID it was registered under.`,
+    )
+    this.name = "RuntimeKitIdentityMismatchError"
+    this.expectedKitId = expectedKitId
+    this.actualKitId = actualKitId
+  }
+}
+
 /**
  * Resolves Kit IDs (e.g. `controller.puniPush.v1`) to runtime adapters.
  * Generated definitions reference Kits by ID only; the registry is the single place that maps
@@ -34,7 +50,11 @@ export class RuntimeKitRegistry {
     if (!factory) {
       throw new RuntimeKitResolutionError(kitId)
     }
-    return factory()
+    const adapter = factory()
+    if (adapter.kitId !== kitId) {
+      throw new RuntimeKitIdentityMismatchError(kitId, adapter.kitId)
+    }
+    return adapter
   }
 
   listRegisteredKitIds(): string[] {
