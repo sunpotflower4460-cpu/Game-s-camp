@@ -5,6 +5,7 @@ export type GeneratedCustomSafetyIssue = {
     | "missing_custom_dir"
     | "custom_path_inside_generated"
     | "generated_path_inside_custom"
+    | "custom_and_generated_identical"
     | "script_mentions_custom_write"
   message: string
   path?: string

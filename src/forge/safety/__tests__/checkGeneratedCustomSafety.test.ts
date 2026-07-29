@@ -97,6 +97,22 @@ describe("checkGeneratedCustomSafety", () => {
     expect(result.issues.some((issue) => issue.code === "script_mentions_custom_write")).toBe(true)
   })
 
+  it("flags a script writing a custom path via the async (non-Sync) writeFile API", () => {
+    const scriptPath = writeScript(
+      "unsafe-async.ts",
+      `import { writeFile } from "node:fs/promises"\nawait writeFile("custom/games/x.ts", "content")\n`,
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_custom_write")).toBe(true)
+  })
+
   it("does not flag a script that merely passes a customDir option unrelated to its own writes", () => {
     const scriptPath = writeScript(
       "runner-like.ts",
@@ -155,5 +171,16 @@ describe("checkGeneratedCustomSafety", () => {
 
     expect(result.ok).toBe(false)
     expect(result.issues.some((issue) => issue.code === "custom_path_inside_generated")).toBe(true)
+  })
+
+  it("reports generated/ and custom/ resolving to the identical directory", () => {
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir: generatedDir,
+      scriptsToInspect: [],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "custom_and_generated_identical")).toBe(true)
   })
 })

@@ -27,6 +27,20 @@ const WRITE_APIS = [
   "rmdirSync",
   "symlinkSync",
   "linkSync",
+  // Callback- and promise-based (`fs.promises.*`/`node:fs/promises`) variants share these same
+  // bare names, so a generator using `writeFile`/`fs.promises.writeFile`/etc. instead of the
+  // *Sync form would otherwise evade this scan entirely.
+  "writeFile",
+  "mkdir",
+  "rm",
+  "rename",
+  "appendFile",
+  "copyFile",
+  "cp",
+  "unlink",
+  "rmdir",
+  "symlink",
+  "link",
 ]
 
 function mentionsCustom(text: string): boolean {
@@ -141,22 +155,34 @@ export function checkGeneratedCustomSafety(args: {
   }
 
   if (existsSync(generatedRoot) && existsSync(customRoot)) {
-    if (isInside(generatedRoot, customRoot)) {
+    // `isInside` uses `path.relative`, which returns "" for two equal paths — neither direction
+    // of the nesting check below would ever flag that as "inside" the other, even though two
+    // identical roots is the worst-case overlap (every generated write is also a custom write).
+    if (generatedRoot === customRoot) {
       issues.push({
         severity: "error",
-        code: "custom_path_inside_generated",
-        message: "custom/ must not be inside generated/.",
+        code: "custom_and_generated_identical",
+        message: "custom/ and generated/ must not resolve to the same directory.",
         path: args.customDir,
       })
-    }
+    } else {
+      if (isInside(generatedRoot, customRoot)) {
+        issues.push({
+          severity: "error",
+          code: "custom_path_inside_generated",
+          message: "custom/ must not be inside generated/.",
+          path: args.customDir,
+        })
+      }
 
-    if (isInside(customRoot, generatedRoot)) {
-      issues.push({
-        severity: "error",
-        code: "generated_path_inside_custom",
-        message: "generated/ must not be inside custom/.",
-        path: args.generatedDir,
-      })
+      if (isInside(customRoot, generatedRoot)) {
+        issues.push({
+          severity: "error",
+          code: "generated_path_inside_custom",
+          message: "generated/ must not be inside custom/.",
+          path: args.generatedDir,
+        })
+      }
     }
   }
 

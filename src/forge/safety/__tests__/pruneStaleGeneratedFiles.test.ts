@@ -142,6 +142,24 @@ describe("pruneStaleGeneratedFiles", () => {
     expect(existsSync(join(customRoot, "keep.txt"))).toBe(true)
   })
 
+  it("rejects pruning generated/ when customRoot is itself a symlink aliasing that location", () => {
+    const aliasedCustomTarget = join(generatedRoot, "aliased-custom")
+    mkdirSync(aliasedCustomTarget, { recursive: true })
+    writeFileSync(join(aliasedCustomTarget, "keep.txt"), "should not be touched\n", "utf8")
+    rmSync(customRoot, { recursive: true, force: true })
+    symlinkSync(aliasedCustomTarget, customRoot, "dir")
+
+    expect(() =>
+      pruneStaleGeneratedFiles({
+        generatedRoot,
+        customRoot,
+        outputDir: aliasedCustomTarget,
+        expectedFileNames: [],
+      }),
+    ).toThrow(UnsafeGeneratedPrunePathError)
+    expect(existsSync(join(aliasedCustomTarget, "keep.txt"))).toBe(true)
+  })
+
   it("rejects pruning inside the protected custom/ directory", () => {
     expect(() =>
       pruneStaleGeneratedFiles({

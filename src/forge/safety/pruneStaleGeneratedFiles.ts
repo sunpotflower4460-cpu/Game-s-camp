@@ -37,6 +37,10 @@ export function pruneStaleGeneratedFiles(args: {
   const generatedRootAbs = resolve(args.generatedRoot)
   const customRootAbs = resolve(args.customRoot ?? "custom")
   const outputDirAbs = resolve(args.outputDir)
+  // If `customRoot` is itself a symlink (e.g. an alias pointing somewhere under `generatedRoot`),
+  // resolving it once up front lets the real-path check below also catch a prune that targets
+  // that alias's real location, not just `customRoot`'s own nominal path.
+  const realCustomRoot = existsSync(customRootAbs) ? realpathSync(customRootAbs) : customRootAbs
 
   if (isWithin(customRootAbs, outputDirAbs)) {
     throw new UnsafeGeneratedPrunePathError(
@@ -59,7 +63,7 @@ export function pruneStaleGeneratedFiles(args: {
   // external directory even though the lexical checks above passed — `realpathSync` resolves
   // the whole chain, so this catches that before `readdirSync`/`rmSync` ever touch the target.
   const realOutputDir = realpathSync(outputDirAbs)
-  if (isWithin(customRootAbs, realOutputDir)) {
+  if (isWithin(realCustomRoot, realOutputDir)) {
     throw new UnsafeGeneratedPrunePathError(
       `Refusing to prune through a symlink into the protected custom/ directory: ${args.outputDir}`,
       args.outputDir,
