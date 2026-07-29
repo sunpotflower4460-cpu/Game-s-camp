@@ -1,5 +1,4 @@
-import { dirname } from "node:path"
-import { writeFileSync } from "node:fs"
+import { relative, sep } from "node:path"
 
 import type { AssemblerPlan } from "../src/forge/assembler/assemblerPlan.types"
 import { validateAssemblerPlan } from "../src/forge/assembler/validateAssemblerPlan"
@@ -7,6 +6,7 @@ import { gameRecipeSchema } from "../src/forge/recipe/gameRecipe.zod"
 import { renderTemplateSet } from "../src/forge/renderer/renderTemplateSet"
 import type { RenderContextValue } from "../src/forge/renderer/renderContext.types"
 import { validateRenderedOutput } from "../src/forge/renderer/validateRenderedOutput"
+import { writeGeneratedFile } from "../src/forge/safety/writeGeneratedFile"
 import { readJsonFile, ReadJsonFileError } from "../src/forge/shared/readJsonFile"
 import {
   loadTemplateRegistry,
@@ -17,8 +17,12 @@ import { validateTemplateRegistry } from "../src/forge/template-registry/validat
 const GAME_ID = "puni-sumo"
 const RECIPE_PATH = "recipes/games/puni-sumo.recipe.json"
 const PLAN_PATH = "plans/puni-sumo.assembler-plan.json"
-const OUTPUT_DIR = "generated/games/puni-sumo"
+const GENERATED_ROOT = "generated"
+const CUSTOM_ROOT = "custom"
+const OUTPUT_DIR = `${GENERATED_ROOT}/games/puni-sumo`
 const REPORT_PATH = `${OUTPUT_DIR}/render-report.md`
+const RUNTIME_TYPES_PATH = "src/runtime/phaser/runtimeGameDefinition.types"
+const RUNTIME_SCENES_DIR = "src/runtime/scenes"
 const SCENE_KEYS = {
   title: "TitleScene",
   game: "GameScene",
@@ -26,7 +30,7 @@ const SCENE_KEYS = {
 } as const
 
 function fail(message: string): never {
-  console.error(`[fail] RenderDryRun: ${message}`)
+  console.error(`[fail] GeneratePuniSumoGame: ${message}`)
   process.exit(1)
 }
 
@@ -41,6 +45,11 @@ function readRequiredJson<T>(path: string): T {
   }
 }
 
+function toRelativeImportPath(fromDir: string, toPath: string): string {
+  const rel = relative(fromDir, toPath).split(sep).join("/")
+  return rel.startsWith(".") ? rel : `./${rel}`
+}
+
 const rawRecipe = readRequiredJson<unknown>(RECIPE_PATH)
 const parsedRecipe = gameRecipeSchema.safeParse(rawRecipe)
 if (!parsedRecipe.success) {
@@ -53,9 +62,9 @@ const planIssues = validateAssemblerPlan(plan)
 for (const issue of planIssues) {
   const output = `${issue.type}: ${issue.message}`
   if (issue.severity === "error") {
-    console.error(`[fail] RenderDryRun: ${output}`)
+    console.error(`[fail] GeneratePuniSumoGame: ${output}`)
   } else {
-    console.warn(`[warn] RenderDryRun: ${output}`)
+    console.warn(`[warn] GeneratePuniSumoGame: ${output}`)
   }
 }
 if (planIssues.some((issue) => issue.severity === "error")) {
@@ -83,7 +92,7 @@ try {
 const templateRegistryValidation = validateTemplateRegistry(templateRegistry)
 if (!templateRegistryValidation.ok) {
   for (const errorMessage of templateRegistryValidation.errors) {
-    console.error(`[fail] RenderDryRun: ${errorMessage}`)
+    console.error(`[fail] GeneratePuniSumoGame: ${errorMessage}`)
   }
   process.exit(1)
 }
@@ -98,6 +107,12 @@ for (const assignment of [...plan.requiredAssignments, ...plan.optionalAssignmen
   slotAssignments.set(assignment.slotName, assignment.kitId)
 }
 
+for (const requiredSlot of templateEntry.manifest.requiredSlots) {
+  if (!slotAssignments.has(requiredSlot.name)) {
+    fail(`Required slot "${requiredSlot.name}" has no resolved Kit assignment in the Assembler Plan.`)
+  }
+}
+
 const tokenReplacements: Record<string, RenderContextValue> = {
   "scene.title": SCENE_KEYS.title,
   "scene.game": SCENE_KEYS.game,
@@ -105,10 +120,16 @@ const tokenReplacements: Record<string, RenderContextValue> = {
   "recipe.title": recipe.title,
   "recipe.engine": recipe.engine,
   "recipe.template": recipe.template,
+  "recipe.tuningJson": JSON.stringify(recipe.tuning ?? {}, null, 2).split("\n").join("\n  "),
+  "import.runtimeTypes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_TYPES_PATH),
+  "import.scenes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_SCENES_DIR),
 }
 
 for (const slot of [...templateEntry.manifest.requiredSlots, ...templateEntry.manifest.optionalSlots]) {
-  tokenReplacements[`slot.${slot.name}`] = slotAssignments.get(slot.name) ?? "unassigned"
+  const assignedKitId = slotAssignments.get(slot.name)
+  if (assignedKitId) {
+    tokenReplacements[`slot.${slot.name}`] = assignedKitId
+  }
 }
 
 const renderContext = {
@@ -125,6 +146,8 @@ const renderResult = renderTemplateSet({
   templateEntry,
   context: renderContext,
   outputDir: OUTPUT_DIR,
+  generatedRoot: GENERATED_ROOT,
+  customRoot: CUSTOM_ROOT,
   tokenReplacements,
 })
 
@@ -143,7 +166,7 @@ const outputValidation = validateRenderedOutput({
 for (const issue of outputValidation.issues) {
   const prefix = issue.severity === "error" ? "[fail]" : "[warn]"
   const printer = issue.severity === "error" ? console.error : console.warn
-  printer(`${prefix} RenderDryRun: ${issue.message}`)
+  printer(`${prefix} GeneratePuniSumoGame: ${issue.message}`)
 }
 
 if (renderResult.unresolvedTokens.length > 0) {
@@ -154,30 +177,37 @@ if (!outputValidation.ok) {
 }
 
 const report = [
-  "# Render Dry Run Report: puni-sumo",
+  "# Generation Report: puni-sumo",
   "",
   `- recipe: \`${RECIPE_PATH}\``,
   `- plan: \`${PLAN_PATH}\``,
   `- template: \`${templateEntry.manifest.id}\``,
   `- outputDir: \`${OUTPUT_DIR}\``,
   "",
-  "## Rendered files",
+  "## Generated files",
   ...renderResult.files.map((file) => `- \`${file.outputPath}\` (from \`${file.sourcePath}\`)`),
   "",
   "## Safety checks",
   "- required output files: ok",
   "- unresolved placeholders: none",
+  "- all writes went through the generated/custom safe writer",
   "",
   "## Scope notes",
-  "- Phaser runtime integration: not included",
-  "- Playable game wiring: not included",
-  "- custom output generation: not included",
+  "- `gameDefinition.ts` is a real, typed GeneratedGameDefinition consumed by the Phase 6.0 Phaser runtime.",
+  "- Scene wrappers are thin subclasses of src/runtime/scenes/MiniAction*Scene; no gameplay logic is generated.",
+  "- No Kit is promoted out of phase: \"skeleton\" by this generation step.",
+  "- custom/ output generation: not included.",
   "",
 ]
 
-writeFileSync(REPORT_PATH, `${report.join("\n")}\n`, "utf8")
-console.log(`[ok] RenderDryRun: wrote ${REPORT_PATH}`)
+writeGeneratedFile({
+  generatedRoot: GENERATED_ROOT,
+  customRoot: CUSTOM_ROOT,
+  outputPath: REPORT_PATH,
+  contents: `${report.join("\n")}\n`,
+})
+console.log(`[ok] GeneratePuniSumoGame: wrote ${REPORT_PATH}`)
 for (const file of renderResult.files) {
-  console.log(`[ok] RenderDryRun: wrote ${file.outputPath}`)
+  console.log(`[ok] GeneratePuniSumoGame: wrote ${file.outputPath}`)
 }
-console.log(`[ok] RenderDryRun: template directory ${dirname(templateEntry.manifestPath)}`)
+console.log(`[ok] GeneratePuniSumoGame: template directory ${templateEntry.manifestPath.split(sep).slice(0, -1).join("/")}`)

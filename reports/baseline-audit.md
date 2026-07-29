@@ -48,10 +48,37 @@ Confirmed present at baseline, to be resolved starting Phase 6.0:
 9. No opponent-AI Kit/slot exists yet (`controller.puniOpponentAI.v1` is not present in `kits/` or the template's slot list).
 10. `scripts/checkGeneratedCustomSafety.ts` performs safety checks against the currently known script set; it has not yet been hardened against arbitrary future generators (path traversal, symlink escape, absolute-path rejection are not yet unit tested).
 
-## Conclusion
+## Conclusion (Phase 6.0)
 
 Baseline is green across all currently defined validation, generation, and build commands, and
 generation is confirmed deterministic/reproducible (no working-tree diff after re-running
 `plan:assembler`, `render:dry-run`, and `generate:schemas`). There are no pre-existing baseline
 failures to separate from Phase 6.0 changes — any failure introduced from this point forward is
 attributable to Phase 6.0 work.
+
+---
+
+## Phase 6.1 baseline
+
+Date: 2026-07-29
+Branch: `claude/phase-6-1-forge-to-runtime-generation` (created from `main`)
+Baseline commit: `9c177d62736a20e573ff1dd2d8f292798a72f1db` (Merge pull request #25, Phase 6.0
+Phaser runtime foundation)
+Node: v22.22.2 / npm: 10.9.7
+
+`npm ci`, `npm run typecheck`, `npm run test` (4 files / 16 tests), all `validate:*` commands,
+`plan:assembler`, `render:dry-run`, `check:generated-custom-safety`, `generate:schemas`, and
+`npm run build` all pass cleanly with zero working-tree diff after regeneration — identical
+result to the Phase 6.0 post-merge state, confirming Phase 6.0 landed cleanly on `main` and there
+is no baseline failure to separate from Phase 6.1 changes.
+
+### Known pre-existing gaps this phase addresses
+
+Carried over from the Phase 6.0 list above, items 9 and 10 are exactly Phase 6.1's scope:
+- No `controller.puniOpponentAI.v1` Kit or `opponentController` slot exists yet.
+- `checkGeneratedCustomSafety`'s script list is a hardcoded 2-item array
+  (`scripts/renderPuniSumoDryRun.ts`, `scripts/createAssemblerPlan.ts`), which would silently stop
+  covering a renamed/new generator script.
+- Item 6 (generated/custom not in the TypeScript project graph) is also in scope.
+- `generated/games/puni-sumo/*.ts` are still placeholder objects, not real `GeneratedGameDefinition`
+  output wired into the Phase 6.0 runtime — the primary goal of this phase.

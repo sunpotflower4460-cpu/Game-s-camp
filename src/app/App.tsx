@@ -5,18 +5,17 @@ function App() {
     <div className="forge-app">
       <header className="forge-header">
         <h1>Game's Camp / AI Game Forge</h1>
-        <p className="forge-phase">Phase 6.0: Runtime Foundation</p>
+        <p className="forge-phase">Phase 6.1: Forge-to-Runtime Generation</p>
       </header>
 
       <main className="forge-main">
         <p className="forge-notice">
           This is not a playable game yet.
           <br />
-          This phase boots a Phaser runtime inside React with generic placeholder scenes and
-          proves the mount / boot / destroy lifecycle.
+          This phase boots the Phaser runtime with a real, generated game definition produced
+          from the Recipe, Assembler Plan, and Template — not a hand-authored placeholder.
           <br />
-          Real generated content wiring (Phase 6.1) and playable Puni Sumo gameplay (Phase 6.2)
-          are not included yet.
+          Playable Puni Sumo gameplay (Phase 6.2) is not included yet.
         </p>
 
         <PreviewShell />

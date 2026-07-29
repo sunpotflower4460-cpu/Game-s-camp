@@ -30,6 +30,7 @@ export const templateManifestSchema = z
     optionalSlots: z.array(templateSlotSchema).default([]),
     files: z
       .object({
+        gameDefinition: z.string().min(1),
         gameScene: z.string().min(1),
         titleScene: z.string().min(1),
         resultScene: z.string().min(1),

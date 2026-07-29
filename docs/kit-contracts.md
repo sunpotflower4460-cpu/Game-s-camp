@@ -41,3 +41,20 @@ The Kit is not executed and is not rendered into gameplay.
 Template slots may define `requiresProvides`.
 When a slot defines `requiresProvides`, the Assembler must select a Kit whose manifest `provides` includes all required capabilities.
 This prevents category-only mismatches such as assigning a timer UI kit to a result UI slot.
+
+## Phase 6.1 KitProposal: controller.puniOpponentAI.v1
+
+Puni Sumo needs a rival actor, so `template.miniAction.v1` gained a required `opponentController`
+slot (`requiresProvides: ["opponentAI"]`). Following the Missing Kit Flow
+(`docs/missing-kit-flow.md`), a new reusable Kit was proposed and added:
+
+- id: `controller.puniOpponentAI.v1`
+- category: `controller`
+- provides: `["opponentAI"]`
+- reusable: yes — any mini-action game with a rival/opponent actor can reuse it
+- Phase 6.1 adds only the manifest, registry entry, and a runtime-neutral skeleton
+  (`src/kits/controllers/puniOpponentAI/`, `phase: "skeleton"`); Phase 6.2 promotes it to a real
+  runtime adapter with actual chase/edge-avoidance behavior.
+
+`playerController` was tightened at the same time to `requiresProvides: ["playerMovement", "pushForce"]`,
+which `controller.puniPush.v1` already satisfies.

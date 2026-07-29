@@ -12,15 +12,15 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 6.0 adds the Phaser runtime foundation on top of the Phase 5.5 protected custom layer
-and generated/custom safety guard.
+Phase 6.1 wires real Forge generation output into the Phase 6.0 Phaser runtime.
 
-This is still not a playable game yet. Phase 6.0 wires a Phaser `Game` into React through a
-single-responsibility runtime contract (`src/runtime/phaser/`, `src/runtime/scenes/`) and proves
-the mount → boot → destroy lifecycle with generic placeholder scenes and a runtime state
-machine (`idle | loading | ready | playing | result | error`). Actual Puni Sumo gameplay
-(movement, opponent AI, push/collision, ring-out, timer, win/lose) is not included until
-Phase 6.2, once Phase 6.1 wires real generated definitions into this runtime.
+This is still not a playable game yet. `generated/games/puni-sumo/gameDefinition.ts` is now a
+real, typed `GeneratedGameDefinition` produced from the actual GameRecipe + Assembler Plan +
+Template (not hand-authored), and the app boots the Phase 6.0 `PhaserGameHost` from that
+generated output instead of a placeholder. Actual Puni Sumo gameplay (movement, opponent AI,
+push/collision, ring-out, timer, win/lose) is still not included — that is Phase 6.2, now that
+every Kit ID a real game needs (including a new `opponentController` slot and
+`controller.puniOpponentAI.v1` Kit) resolves through the same pipeline.
 
 ## Non-negotiable Rules
 
@@ -61,7 +61,7 @@ npm run validate:kit-registry
 npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
-npm run render:dry-run
+npm run generate:game
 npm run generate:schemas
 ```
 
@@ -71,36 +71,38 @@ Current limits:
 - Template Registry checks duplicate Template IDs and template file placeholder references.
 - Recipe compatibility checks enforce required Kit existence, Kit/recipe engine-template-input consistency, and recipe template existence in Template Registry.
 - Assembler planning maps Recipe + Template slots + Kit manifests into a pre-generation plan under `plans/`.
-- Safe renderer dry-run maps template placeholders into `generated/games/puni-sumo/` output and emits a render report.
+- The generator maps template placeholders into a real, runtime-consumable `generated/games/puni-sumo/` output and emits a render report.
 - Optional missing Kits are reported as warnings.
-- Kit implementations in `src/kits/` are runtime-neutral skeletons only.
-- Generated files are placeholders only and are not wired into runtime execution.
+- Kit implementations in `src/kits/` are runtime-neutral skeletons only (including the new `controller.puniOpponentAI.v1` — no Kit is promoted to runtime-ready until Phase 6.2).
+- Generated files are consumed by the Phase 6.0 runtime, but no Kit yet implements actual gameplay behind them.
 
-## Assembler Plan + Dry Run Render
+## Assembler Plan + Generation
 
-Phase 4.5 introduces an Assembler planning step.
+Phase 4.5 introduced the Assembler planning step; Phase 6.1 replaced the former placeholder-only
+`render:dry-run` with a real generator.
 
 ```bash
 npm run plan:assembler
-npm run render:dry-run
+npm run generate:game
 ```
 
 This creates:
 
 - `plans/puni-sumo.assembler-plan.json`
 - `plans/puni-sumo.assembler-plan.md`
-- `generated/games/puni-sumo/GameScene.ts`
-- `generated/games/puni-sumo/TitleScene.ts`
-- `generated/games/puni-sumo/ResultScene.ts`
-- `generated/games/puni-sumo/gameConfig.ts`
+- `generated/games/puni-sumo/gameDefinition.ts` — a real, typed `GeneratedGameDefinition`
+- `generated/games/puni-sumo/TitleScene.ts` / `GameScene.ts` / `ResultScene.ts` — thin wrappers
+  extending `src/runtime/scenes/MiniAction*Scene`, constructed with the generated definition
+- `generated/games/puni-sumo/gameConfig.ts` — a human-readable resolved-slot summary (not
+  consumed by the runtime)
 - `generated/games/puni-sumo/render-report.md`
 
 Current limits:
 
-- The output is placeholder-only dry-run generation.
-- Runtime wiring to app/runtime is intentionally deferred.
-- Phaser integration is still deferred.
-- `custom/` output is intentionally deferred.
+- The generated Scenes are still the Phase 6.0 generic placeholders (Title → Game → Result);
+  no Puni Sumo-specific gameplay is wired in yet — that's Phase 6.2.
+- `custom/` output generation is still deferred (Phase 6.3); `custom/` may only be read, never
+  written, by generator or runtime code.
 
 ## Custom layer and generated/custom safety
 Phase 5.5 introduces a protected `custom/` layer and a generated/custom safety check.
@@ -133,26 +135,29 @@ contain Puni Sumo gameplay. `RuntimeKitRegistry` resolution, `mergeGameOverrides
 `phaser` itself (which feature-detects a 2D canvas context at module load time) does not throw
 under Vitest's `jsdom` environment; it is test-only and is not part of the production bundle.
 
-Full end-to-end boot verification (Title → Start → Playing → Finish → Result → Replay, on both
-a desktop viewport and a 390×844 mobile viewport, with exactly one `<canvas>` at all times and no
-page errors) was confirmed manually against the Vite dev server in this phase; automating it with
-Playwright is Phase 6.4 scope.
+As of Phase 6.1, `PreviewShell.tsx` mounts `PhaserGameHost` with
+`generated/games/puni-sumo/gameDefinition.ts` — real generator output — instead of a
+hand-authored placeholder. Full end-to-end boot verification (Title → Start → Playing → Finish →
+Result → Replay, on both a desktop viewport and a 390×844 mobile viewport, with exactly one
+`<canvas>` at all times and no page errors) was confirmed manually against the Vite dev server;
+automating it with Playwright is Phase 6.4 scope.
 
 ## Current Phase
-Phase 6.0: Runtime Foundation.
+Phase 6.1: Forge-to-Runtime Generation.
 Allowed in this phase:
-- `phaser` runtime dependency, exact-pinned
-- Phaser Canvas mount inside React (StrictMode-safe, single instance, full cleanup on unmount)
-- runtime registry / runtime contract under `src/runtime/phaser/` and `src/runtime/scenes/`
-- generic placeholder scenes proving the Title/Game/Result flow and runtime state machine
-- preparing (not yet consuming) a typed `GeneratedGameDefinition`
-- Vitest-based runtime smoke tests
+- generator changes that make `generated/games/puni-sumo/` runtime-consumable
+- a new required `opponentController` Template slot and a tightened `playerController` slot
+- a new reusable Kit, `controller.puniOpponentAI.v1` (manifest + registry + skeleton only)
+- a common safe writer for generated output (path traversal / absolute / symlink / `custom/`
+  rejection), replacing ad hoc `writeFileSync` calls
+- generic script discovery for the generated/custom safety check, instead of a hardcoded list
+- adding `generated/` and `custom/` to the TypeScript project graph
 Not allowed in this phase:
 - hand-editing `generated/`
 - writing to `custom/` from runtime or generator code
-- actual Puni Sumo gameplay (movement, AI, push, ring-out, timer, win/lose)
-- visual polish, procedural art, or audio
-- generator changes that make `generated/games/puni-sumo/` runtime-consumable (Phase 6.1)
+- promoting any Kit (including the new one) out of `phase: "skeleton"`, or any actual Puni Sumo
+  gameplay (movement, AI, push, ring-out, timer, win/lose) — that's Phase 6.2
+- visual polish, procedural art, or audio (Phase 6.3)
 - Playwright e2e tests (Phase 6.4)
 - unrelated dependency upgrades
 
@@ -170,7 +175,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 6.0 verification checklist
+## Phase 6.1 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -183,12 +188,12 @@ npm run validate:kit-registry
 npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
-npm run render:dry-run
+npm run generate:game
 npm run check:generated-custom-safety
 npm run generate:schemas
 npm run test
 npm run build
 ```
 
-A baseline audit recorded before Phase 6.0 work started is available at
+A baseline audit recorded before Phase 6.0 and Phase 6.1 work started is available at
 `reports/baseline-audit.md`.

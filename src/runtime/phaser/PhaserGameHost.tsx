@@ -18,6 +18,15 @@ export type PhaserGameHostProps = {
   width?: number
   height?: number
   onStatusChange?: (snapshot: RuntimeSnapshot) => void
+  /**
+   * Scene *classes* (not instances — see `createPhaserConfig`) to register, in
+   * Title/Game/Result order — typically a game's own generated
+   * `generated/games/<gameId>/{Title,Game,Result}Scene` classes. Defaults to the generic
+   * placeholder scenes if omitted. Like `definition`, a changed reference remounts the Phaser
+   * game; a module-level constant array is enough to keep this stable across renders since
+   * classes themselves never change identity (no `useMemo` needed).
+   */
+  scenes?: Phaser.Types.Scenes.SceneType[]
 }
 
 function statusMessage(status: RuntimeStatus, definition: GeneratedGameDefinition): string {
@@ -46,7 +55,7 @@ const DEFAULT_HEIGHT = 1280
 // error listener that would also catch unrelated errors from React or other mounted hosts.
 const BOOT_TIMEOUT_MS = 8000
 
-function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGameHostProps) {
+function PhaserGameHost({ definition, width, height, onStatusChange, scenes }: PhaserGameHostProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const gameRef = useRef<Phaser.Game | null>(null)
   const [snapshot, setSnapshot] = useState<RuntimeSnapshot>(createIdleRuntimeSnapshot())
@@ -114,7 +123,7 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
     }
 
     try {
-      const config = createPhaserConfig({ parent: container, definition, width, height })
+      const config = createPhaserConfig({ parent: container, definition, width, height, scenes })
       game = createPhaserGame(config)
       gameRef.current = game
       game.events.on(RUNTIME_STATUS_EVENT, handleStatus)
@@ -148,7 +157,7 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
       destroyPhaserGame(gameRef.current)
       gameRef.current = null
     }
-  }, [definition, width, height, retryToken])
+  }, [definition, width, height, scenes, retryToken])
 
   const aspectRatio = `${width ?? DEFAULT_WIDTH} / ${height ?? DEFAULT_HEIGHT}`
 

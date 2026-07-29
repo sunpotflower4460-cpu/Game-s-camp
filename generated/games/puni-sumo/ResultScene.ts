@@ -1,6 +1,8 @@
-export const resultSceneTemplate = {
-  sceneKey: "ResultScene",
-  replaySceneKey: "GameScene",
-  titleSceneKey: "TitleScene",
-  resultUiSlot: "ui.resultScreen.v1",
+import { MiniActionResultScene } from "../../../src/runtime/scenes/MiniActionResultScene"
+import { generatedGameDefinition } from "./gameDefinition"
+
+export class ResultScene extends MiniActionResultScene {
+  constructor() {
+    super(generatedGameDefinition)
+  }
 }

@@ -1,10 +1,16 @@
-// Resolved configuration summary for {{title}}. The runtime reads gameDefinition.ts, not this
-// file; this exists only as a human-readable record of what the Assembler resolved.
-export const resolvedGameConfig = {
+import type { GeneratedGameDefinition } from "{{import.runtimeTypes}}"
+
+export const generatedGameDefinition: GeneratedGameDefinition = {
+  schemaVersion: "0.1",
   gameId: "{{gameId}}",
   title: "{{title}}",
   engine: "{{engine}}",
   templateId: "{{templateId}}",
+  scenes: {
+    title: "{{scene.title}}",
+    game: "{{scene.game}}",
+    result: "{{scene.result}}",
+  },
   slots: {
     playerController: "{{slot.playerController}}",
     opponentController: "{{slot.opponentController}}",
@@ -14,4 +20,5 @@ export const resolvedGameConfig = {
     mainCamera: "{{slot.mainCamera}}",
     timerUi: "{{slot.timerUi}}",
   },
-} as const
+  tuning: {{recipe.tuningJson}},
+}

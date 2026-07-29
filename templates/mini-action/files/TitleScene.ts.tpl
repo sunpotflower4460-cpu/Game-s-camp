@@ -1,5 +1,8 @@
-export const titleSceneTemplate = {
-  sceneKey: "{{scene.title}}",
-  nextSceneKey: "{{scene.game}}",
-  titleText: "{{recipe.title}}",
+import { MiniActionTitleScene } from "{{import.scenes}}/MiniActionTitleScene"
+import { generatedGameDefinition } from "./gameDefinition"
+
+export class {{scene.title}} extends MiniActionTitleScene {
+  constructor() {
+    super(generatedGameDefinition)
+  }
 }

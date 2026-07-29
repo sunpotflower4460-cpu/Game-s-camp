@@ -1,10 +1,16 @@
-// Resolved configuration summary for 森のぷに相撲. The runtime reads gameDefinition.ts, not this
-// file; this exists only as a human-readable record of what the Assembler resolved.
-export const resolvedGameConfig = {
+import type { GeneratedGameDefinition } from "../../../src/runtime/phaser/runtimeGameDefinition.types"
+
+export const generatedGameDefinition: GeneratedGameDefinition = {
+  schemaVersion: "0.1",
   gameId: "puni-sumo",
   title: "森のぷに相撲",
   engine: "phaser",
   templateId: "template.miniAction.v1",
+  scenes: {
+    title: "TitleScene",
+    game: "GameScene",
+    result: "ResultScene",
+  },
   slots: {
     playerController: "controller.puniPush.v1",
     opponentController: "controller.puniOpponentAI.v1",
@@ -14,4 +20,10 @@ export const resolvedGameConfig = {
     mainCamera: "camera.isometricSoft.v1",
     timerUi: "ui.roundTimer.v1",
   },
-} as const
+  tuning: {
+    "moveSpeed": 180,
+    "pushPower": 1.2,
+    "arenaRadius": 260,
+    "roundTimeSec": 60
+  },
+}

@@ -10,6 +10,7 @@
   "durationSec": 60,
   "requiredKits": [
     "controller.puniPush.v1",
+    "controller.puniOpponentAI.v1",
     "camera.isometricSoft.v1",
     "stage.circularArenaForest.v1",
     "rule.ringOut.v1",

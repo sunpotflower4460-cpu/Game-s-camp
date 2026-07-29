@@ -11,18 +11,28 @@ This project is an AI game forge, not a normal game app.
 
 ## Phase scope for this PR
 
-- This PR is Phase 6.0: Runtime Foundation.
-- GameRecipe, KitManifest, and TemplateManifest schema/validator foundations remain unchanged.
-- Kit Registry, Template Registry, compatibility checks, Assembler plan, and dry-run renderer remain unchanged from Phase 5.5.
-- `phaser` (exact `4.2.1`) is added as a runtime dependency.
-- A runtime contract is introduced under `src/runtime/phaser/` and `src/runtime/scenes/`: Phaser Game creation/destruction is centralized, React mounts exactly one Phaser instance per `PhaserGameHost` lifetime (StrictMode-safe), and a `RuntimeKitRegistry` resolves Kit IDs to runtime adapters, failing clearly when a Kit is unregistered.
-- Only generic placeholder scenes are in scope (Title → Game → Result flow, runtime status transitions). No Puni Sumo-specific gameplay (movement, AI, push, ring-out, timer, win/lose) is in scope.
-- `Vitest` is introduced for runtime smoke tests.
-- Do not implement playable Puni Sumo yet.
-- Do not wire `generated/games/puni-sumo/` output into the runtime yet (Phase 6.1).
-- Do not wire `custom/` output into the runtime yet (Phase 6.3).
-- Do not let renderer/assembler scripts write into `custom/`.
+- This PR is Phase 6.1: Forge-to-Runtime Generation.
+- The generator now produces a real, typed `GeneratedGameDefinition`
+  (`generated/games/puni-sumo/gameDefinition.ts`) from the actual Recipe + Assembler Plan +
+  Template — not a hand-authored placeholder — and the Phase 6.0 `PhaserGameHost` runtime now
+  boots from that generated output.
+- Generated Scene files (`TitleScene.ts`, `GameScene.ts`, `ResultScene.ts`) are thin wrappers
+  extending the Phase 6.0 `MiniAction*Scene` classes; `gameConfig.ts` is a human-readable
+  resolved-slot summary, not consumed by the runtime.
+- The Template contract gains a required `opponentController` slot
+  (`requiresProvides: ["opponentAI"]`) and a tightened `playerController` slot
+  (`requiresProvides: ["playerMovement", "pushForce"]`).
+- A new reusable Kit, `controller.puniOpponentAI.v1`, is added — manifest + registry entry +
+  runtime-neutral skeleton only. It is not promoted to runtime-ready and no gameplay uses it yet.
+- All generated-file writes go through a common safe writer that rejects path traversal,
+  absolute-path escape, symlink escape, and any write under `custom/`.
+- `generated/` and `custom/` are added to the TypeScript project graph.
+- `render:dry-run` is replaced by `generate:game` (`scripts/generatePuniSumoGame.ts`), since the
+  output is no longer a non-functional dry run.
+- Do not implement playable Puni Sumo yet — no Kit is promoted out of `phase: "skeleton"`, and no
+  gameplay (movement, AI, push, ring-out, timer, win/lose) is in scope (Phase 6.2).
 - Do not add visual polish, procedural art, or audio yet (Phase 6.3).
+- Do not let generator scripts write into `custom/`.
 
 ## Currently available commands
 
@@ -37,7 +47,7 @@ npm run validate:kit-registry
 npm run validate:template-registry
 npm run validate:compatibility
 npm run plan:assembler
-npm run render:dry-run
+npm run generate:game
 npm run check:generated-custom-safety
 npm run generate:schemas
 npm run test
@@ -50,7 +60,6 @@ The following commands are planned for future phases. They are not runnable yet.
 
 ```txt
 npm run lint
-npm run generate:game
 npm run verify:forge
 npm run test:e2e
 ```

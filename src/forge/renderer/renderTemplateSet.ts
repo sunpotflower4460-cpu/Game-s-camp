@@ -1,9 +1,9 @@
-import { mkdirSync, writeFileSync } from "node:fs"
 import { basename, join, relative } from "node:path"
 
 import {
   resolveTemplateManifestReferencePath,
 } from "../template-registry/loadTemplateRegistry"
+import { writeGeneratedFile } from "../safety/writeGeneratedFile"
 import type { TemplateRegistryEntry } from "../template-registry/templateRegistry.types"
 
 import type { RenderContext, RenderContextValue } from "./renderContext.types"
@@ -24,13 +24,20 @@ export function renderTemplateSet(args: {
   templateEntry: TemplateRegistryEntry
   context: RenderContext
   outputDir: string
+  generatedRoot?: string
+  customRoot?: string
   tokenReplacements?: Record<string, RenderContextValue>
 }): RenderTemplateSetResult {
-  const { templateEntry, context, outputDir, tokenReplacements = {} } = args
+  const {
+    templateEntry,
+    context,
+    outputDir,
+    generatedRoot = "generated",
+    customRoot = "custom",
+    tokenReplacements = {},
+  } = args
   const files: RenderedTemplateOutput[] = []
   const unresolved = new Set<string>()
-
-  mkdirSync(outputDir, { recursive: true })
 
   for (const templateFileReference of Object.values(templateEntry.manifest.files)) {
     const sourcePath = resolveTemplateManifestReferencePath(
@@ -41,7 +48,7 @@ export function renderTemplateSet(args: {
     const outputPath = join(outputDir, outputFileName)
     const rendered = renderTemplateFile(sourcePath, context, tokenReplacements)
 
-    writeFileSync(outputPath, rendered.output, "utf8")
+    writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: rendered.output })
 
     for (const token of rendered.unresolvedTokens) {
       unresolved.add(token)

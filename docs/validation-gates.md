@@ -39,7 +39,7 @@ Checks that should eventually run through scripts or CI.
 - kit validation succeeds
 - compatibility check succeeds
 - assembler plan generation succeeds
-- dry-run render generation succeeds
+- game generation succeeds and produces a valid `GeneratedGameDefinition`
 - no critical console errors
 
 ### Automated e2e-check
@@ -111,3 +111,22 @@ viewport.
 Full browser-level boot/mount/unmount verification is not yet an automated CI gate; that is
 Phase 6.4 scope. Until then, treat the manually-verified items above as re-checked by a human
 before each Phase 6.x release, not as continuously enforced.
+
+## Phase 6.1 generation safety gate
+
+Phase 6.1 adds machine-checks around the generator itself:
+
+- `npm run generate:game` produces a `generated/games/puni-sumo/gameDefinition.ts` that
+  satisfies the `GeneratedGameDefinition` shape, with no unresolved template placeholders.
+- Every write the generator performs goes through the common safe writer
+  (`src/forge/safety/writeGeneratedFile.ts`), which is unit-tested to reject: writes outside
+  `generated/`, path traversal (`..`), absolute paths that resolve outside `generated/`, symlink
+  escapes, and any write under `custom/`.
+- `check:generated-custom-safety` discovers generator scripts under `scripts/` generically
+  instead of relying on a hardcoded list, so a renamed or newly added generator is still covered.
+- `generated/` and `custom/` are part of the TypeScript project graph (`tsc -b`), so an import
+  error in generated output or a shape mismatch in a custom override fails typecheck, not just at
+  runtime.
+- Re-running `generate:game` from the same Recipe/Plan/Templates produces an identical
+  `generated/` tree (`git diff --exit-code generated/` stays clean), and `custom/` is untouched
+  (`git diff --exit-code custom/` stays clean).

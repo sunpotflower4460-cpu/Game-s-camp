@@ -1,0 +1,42 @@
+{
+  "id": "controller.puniOpponentAI.v1",
+  "name": "Puni Opponent AI Controller",
+  "category": "controller",
+  "engine": "phaser",
+  "version": "0.1.0",
+  "description": "Controller kit manifest for the rival/opponent actor's AI movement.",
+  "provides": ["opponentAI"],
+  "requires": [],
+  "compatibleWith": {
+    "templates": ["template.miniAction.v1"]
+  },
+  "tunables": {
+    "reactionDelayMs": {
+      "type": "number",
+      "default": 220,
+      "min": 0,
+      "max": 1000
+    },
+    "aggression": {
+      "type": "number",
+      "default": 0.6,
+      "min": 0,
+      "max": 1
+    },
+    "edgeAvoidance": {
+      "type": "number",
+      "default": 0.7,
+      "min": 0,
+      "max": 1
+    },
+    "maxSpeed": {
+      "type": "number",
+      "default": 170,
+      "min": 60,
+      "max": 360
+    }
+  },
+  "invariants": ["mustNotCreateWinCondition"],
+  "entry": "src/kits/controllers/puniOpponentAI/PuniOpponentAIController.ts",
+  "testFixture": "src/kits/controllers/puniOpponentAI/PuniOpponentAIController.fixture.ts"
+}
