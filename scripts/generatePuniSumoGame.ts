@@ -40,6 +40,20 @@ function fail(message: string): never {
   process.exit(1)
 }
 
+// `JSON.stringify` does not escape U+2028 (LINE SEPARATOR) or U+2029 (PARAGRAPH SEPARATOR): they're
+// valid unescaped inside a JS string literal, but they still terminate a `//` single-line comment
+// (gameConfig.ts.tpl embeds `{{recipe.titleJson}}` in one). A free-text Recipe field containing
+// either character would otherwise truncate that comment and splice the remainder of the title into
+// the file as code. `\uXXXX` escapes are valid and equivalent inside a string literal, so escaping
+// them here is safe everywhere this helper is used, not just inside comments.
+function jsonStringifyEscaped(
+  value: unknown,
+  replacer?: (number | string)[] | null,
+  space?: string | number,
+): string {
+  return JSON.stringify(value, replacer, space).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
+}
+
 function readRequiredJson<T>(path: string): T {
   try {
     return readJsonFile(path) as T
@@ -215,12 +229,12 @@ const tokenReplacements: Record<string, RenderContextValue> = {
   "scene.title": SCENE_KEYS.title,
   "scene.game": SCENE_KEYS.game,
   "scene.result": SCENE_KEYS.result,
-  "recipe.tuningJson": JSON.stringify(recipe.tuning ?? {}, null, 2).split("\n").join("\n  "),
-  "plan.slotsJson": JSON.stringify(slotsForOutput, null, 2).split("\n").join("\n  "),
-  "recipe.gameIdJson": JSON.stringify(recipe.id),
-  "recipe.titleJson": JSON.stringify(recipe.title),
-  "recipe.engineJson": JSON.stringify(recipe.engine),
-  "recipe.templateIdJson": JSON.stringify(recipe.template),
+  "recipe.tuningJson": jsonStringifyEscaped(recipe.tuning ?? {}, null, 2).split("\n").join("\n  "),
+  "plan.slotsJson": jsonStringifyEscaped(slotsForOutput, null, 2).split("\n").join("\n  "),
+  "recipe.gameIdJson": jsonStringifyEscaped(recipe.id),
+  "recipe.titleJson": jsonStringifyEscaped(recipe.title),
+  "recipe.engineJson": jsonStringifyEscaped(recipe.engine),
+  "recipe.templateIdJson": jsonStringifyEscaped(recipe.template),
   "import.runtimeTypes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_TYPES_PATH),
   "import.scenes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_SCENES_DIR),
 }
@@ -232,7 +246,7 @@ const renderContext = {
   engine: recipe.engine,
   input: recipe.input,
   durationSec: recipe.durationSec ?? 0,
-  requiredKitsJson: JSON.stringify(recipe.requiredKits, null, 2),
+  requiredKitsJson: jsonStringifyEscaped(recipe.requiredKits, null, 2),
 }
 
 const renderResult = renderTemplateSet({

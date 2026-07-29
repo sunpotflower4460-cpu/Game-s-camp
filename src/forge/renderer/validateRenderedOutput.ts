@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync } from "node:fs"
 import { join } from "node:path"
 
 export type RenderedOutputIssue = {
@@ -11,8 +11,12 @@ export type RenderedOutputValidationResult = {
   issues: RenderedOutputIssue[]
 }
 
-const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9._-]+)\s*}}/g
-
+// Unresolved-token detection lives solely in `renderTemplateSet`'s `unresolvedTokens` tracking,
+// which knows the provenance of every token it substitutes and can never mistake literal Recipe
+// data for an unresolved placeholder. A disk-content rescan here using a `{{...}}` regex would be
+// both redundant with that (the caller already checks `renderResult.unresolvedTokens.length`) and
+// wrong: it would false-positive on any legitimate Recipe value that merely resembles a template
+// token (e.g. a tuning string containing the literal text `"{{debug.label}}"`).
 export function validateRenderedOutput(args: {
   outputDir: string
   expectedFiles: string[]
@@ -25,20 +29,6 @@ export function validateRenderedOutput(args: {
       issues.push({
         severity: "error",
         message: `Missing rendered output: ${outputPath}`,
-      })
-      continue
-    }
-
-    const content = readFileSync(outputPath, "utf-8")
-    const unresolved = new Set<string>()
-    for (const match of content.matchAll(PLACEHOLDER_PATTERN)) {
-      unresolved.add(match[1])
-    }
-
-    if (unresolved.size > 0) {
-      issues.push({
-        severity: "error",
-        message: `Unresolved placeholders in ${outputPath}: ${[...unresolved].join(", ")}`,
       })
     }
   }

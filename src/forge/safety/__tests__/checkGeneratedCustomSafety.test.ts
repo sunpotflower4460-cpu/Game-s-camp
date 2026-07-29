@@ -27,10 +27,10 @@ describe("checkGeneratedCustomSafety", () => {
     return scriptPath
   }
 
-  it("passes when generated/ and custom/ both exist and no script mentions custom writes", () => {
+  it("passes when generated/ and custom/ both exist and no script mentions protected-dir writes", () => {
     const scriptPath = writeScript(
       "safe.ts",
-      `import { writeFileSync } from "node:fs"\nwriteFileSync("generated/games/x.ts", "content")\n`,
+      `import { writeGeneratedFile } from "../src/forge/safety/writeGeneratedFile"\nwriteGeneratedFile({ generatedRoot: "generated", outputPath: "generated/games/x.ts", contents: "content" })\n`,
     )
 
     const result = checkGeneratedCustomSafety({
@@ -111,6 +111,100 @@ describe("checkGeneratedCustomSafety", () => {
 
     expect(result.ok).toBe(false)
     expect(result.issues.some((issue) => issue.code === "script_mentions_custom_write")).toBe(true)
+  })
+
+  it("flags a script writing a literal generated/ path via a raw fs call", () => {
+    const scriptPath = writeScript(
+      "unsafe-raw-generated.ts",
+      `import { writeFileSync } from "node:fs"\nwriteFileSync("generated/games/x.ts", "content")\n`,
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_generated_write")).toBe(true)
+  })
+
+  it("flags a script writing a computed generated path via join(...)", () => {
+    const scriptPath = writeScript(
+      "unsafe-raw-generated-computed.ts",
+      `import { writeFileSync } from "node:fs"\nimport { join } from "node:path"\nwriteFileSync(join("generated", "games", "x.ts"), "content")\n`,
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_generated_write")).toBe(true)
+  })
+
+  it("flags a script writing a generated path referenced through a local variable", () => {
+    const scriptPath = writeScript(
+      "unsafe-raw-generated-indirect.ts",
+      [
+        `import { writeFileSync } from "node:fs"`,
+        `import { join } from "node:path"`,
+        `const root = "generated"`,
+        `writeFileSync(join(root, "games", "x.ts"), "content")`,
+        ``,
+      ].join("\n"),
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_generated_write")).toBe(true)
+  })
+
+  it("flags a script writing a generated path via the async (non-Sync) writeFile API", () => {
+    const scriptPath = writeScript(
+      "unsafe-raw-generated-async.ts",
+      `import { writeFile } from "node:fs/promises"\nawait writeFile("generated/games/x.ts", "content")\n`,
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "script_mentions_generated_write")).toBe(true)
+  })
+
+  it("does not flag the safety-check runner's own report write, which merely mentions 'generated' in an unrelated path", () => {
+    const scriptPath = writeScript(
+      "runner-report-like.ts",
+      [
+        `import { writeFileSync, mkdirSync } from "node:fs"`,
+        `import { dirname } from "node:path"`,
+        ``,
+        `const REPORT_PATH = "reports/generated-custom-safety.md"`,
+        `mkdirSync(dirname(REPORT_PATH), { recursive: true })`,
+        `writeFileSync(REPORT_PATH, "report")`,
+        ``,
+      ].join("\n"),
+    )
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
+      scriptsToInspect: [scriptPath],
+    })
+
+    expect(result.ok).toBe(true)
+    expect(result.issues).toEqual([])
   })
 
   it("does not flag a script that merely passes a customDir option unrelated to its own writes", () => {

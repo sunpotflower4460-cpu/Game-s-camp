@@ -7,6 +7,7 @@ export type GeneratedCustomSafetyIssue = {
     | "generated_path_inside_custom"
     | "custom_and_generated_identical"
     | "script_mentions_custom_write"
+    | "script_mentions_generated_write"
   message: string
   path?: string
 }

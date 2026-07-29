@@ -99,7 +99,14 @@ export function resolveSafeGeneratedWritePath(args: {
       args.outputPath,
     )
   }
-  if (isWithin(realCustomRoot, realOutputDir)) {
+  // Re-resolve customRoot's real path here rather than reusing `realCustomRoot` from above: if
+  // customRoot was a *dangling* symlink at that point (existsSync was false, so realCustomRoot
+  // above is just its unresolved nominal path), the `mkdirSync` call just above can itself have
+  // materialized the symlink's target — e.g. because that target sits on the path being created
+  // under generatedRoot. Using the stale pre-creation value here would miss that the alias now
+  // resolves into a real location, possibly one that overlaps customRoot's target.
+  const realCustomRootAfterWrite = existsSync(customRootAbs) ? realpathSync(customRootAbs) : realCustomRoot
+  if (isWithin(realCustomRootAfterWrite, realOutputDir)) {
     throw new UnsafeGeneratedWritePathError(
       `Refusing to write through an alias that resolves into the protected custom/ directory: ${args.outputPath}`,
       args.outputPath,

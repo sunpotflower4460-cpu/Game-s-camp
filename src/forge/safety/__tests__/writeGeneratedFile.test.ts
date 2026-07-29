@@ -124,6 +124,24 @@ describe("writeGeneratedFile", () => {
     ).toThrow(UnsafeGeneratedWritePathError)
   })
 
+  it("rejects writing through a dangling customRoot symlink whose target gets created by this same write's mkdirSync", () => {
+    // customRoot is a symlink to a location under generatedRoot that doesn't exist yet, so at the
+    // start of resolveSafeGeneratedWritePath it's dangling (existsSync is false) and its "real"
+    // path can't be resolved. The output path being written sits inside that not-yet-existing
+    // target, so `mkdirSync(outputDir, { recursive: true })` materializes it as a side effect of
+    // creating the output directory — which must not let the stale pre-creation resolution of
+    // customRoot bypass the final custom/-alias check.
+    const aliasTarget = join(generatedRoot, "alias-target")
+    rmSync(customRoot, { recursive: true, force: true })
+    symlinkSync(aliasTarget, customRoot, "dir")
+    const outputPath = join(aliasTarget, "nested", "rules.ts")
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+    expect(existsSync(outputPath)).toBe(false)
+  })
+
   it("rejects writing through a destination that is a dangling symlink", () => {
     const outputPath = join(generatedRoot, "gameDefinition.ts")
     symlinkSync(join(workDir, "does-not-exist.ts"), outputPath)

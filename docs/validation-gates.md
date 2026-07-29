@@ -124,13 +124,14 @@ Phase 6.1 adds machine-checks around the generator itself:
   escapes, and any write under `custom/`.
 - `check:generated-custom-safety` discovers generator scripts under `scripts/` recursively
   (`.ts` and `.js`) instead of relying on a hardcoded list, so a renamed, nested, or newly added
-  generator is still covered. Its "does this script write into custom/" scan is a text heuristic
-  (covering literal paths, computed paths, local-variable indirection, and both sync and async fs
-  APIs) meant to catch an obviously-misbehaving generator early — not the actual enforcement
-  boundary, and not immune to import aliasing or other renaming a real AST pass would be needed to
-  see through. The real boundary is `writeGeneratedFile`/`pruneStaleGeneratedFiles`, which validate
-  the actual resolved destination path at the moment of the real filesystem call regardless of how
-  the write was invoked.
+  generator is still covered. Its "does this script write into custom/" scan — and, symmetrically,
+  its "does this script raw-write into generated/ instead of going through `writeGeneratedFile`"
+  scan — are text heuristics (covering literal paths, computed paths, local-variable indirection,
+  and both sync and async fs APIs) meant to catch an obviously-misbehaving generator early — not
+  the actual enforcement boundary, and not immune to import aliasing or other renaming a real AST
+  pass would be needed to see through. The real boundary is
+  `writeGeneratedFile`/`pruneStaleGeneratedFiles`, which validate the actual resolved destination
+  path at the moment of the real filesystem call regardless of how the write was invoked.
 - `generated/` and `custom/` are part of the TypeScript project graph (`tsc -b`), so an import
   error in generated output or a shape mismatch in a custom override fails typecheck, not just at
   runtime.

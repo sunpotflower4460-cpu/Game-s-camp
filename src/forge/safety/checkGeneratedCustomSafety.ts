@@ -47,6 +47,14 @@ function mentionsCustom(text: string): boolean {
   return text.includes("custom/") || text.includes('"custom"') || text.includes("'custom'")
 }
 
+// A raw write API whose arguments mention "generated/" bypasses `writeGeneratedFile` for
+// generated-output writes just as surely as one mentioning "custom/" bypasses it for the
+// protected directory — every real write into generated/ is supposed to go through the safe
+// writer, not a bare `fs` call, regardless of which directory it targets.
+function mentionsGenerated(text: string): boolean {
+  return text.includes("generated/") || text.includes('"generated"') || text.includes("'generated'")
+}
+
 // Resolves simple `const NAME = "literal"` / `let NAME = "literal"` / `var NAME = "literal"`
 // bindings so a write call that references a local variable instead of an inline string —
 // e.g. `const root = "custom"; writeFileSync(join(root, "rules.ts"), ...)` — can still be
@@ -63,12 +71,16 @@ function collectLocalStringConstants(source: string): Map<string, string> {
   return constants
 }
 
-function argsIndirectlyMentionCustom(args: string, constants: Map<string, string>): boolean {
+function argsIndirectlyMention(
+  args: string,
+  constants: Map<string, string>,
+  mentions: (text: string) => boolean,
+): boolean {
   const identifierPattern = /\b[a-zA-Z_$][\w$]*\b/g
   let match: RegExpExecArray | null
   while ((match = identifierPattern.exec(args)) !== null) {
     const value = constants.get(match[0])
-    if (value !== undefined && mentionsCustom(`"${value}"`)) {
+    if (value !== undefined && mentions(`"${value}"`)) {
       return true
     }
   }
@@ -103,10 +115,11 @@ function extractBalancedArgs(source: string, openParenIndex: number): string {
 // A plain "does this file mention custom/ AND a write API anywhere" check would flag legitimate
 // scripts that reference "custom" for an unrelated reason (e.g. this very check's own runner,
 // which passes `customDir: "custom"` to `checkGeneratedCustomSafety` while separately writing its
-// own report). Instead, scope the "mentions custom" check to the argument list of each write-API
-// call site specifically, so only a write whose own arguments reference custom/ is flagged. This
-// is still a text heuristic (not real path/AST analysis), but it catches the common computed-path
-// case — e.g. `writeFileSync(join("custom", "rules.ts"), ...)` — without over-triggering.
+// own report). Instead, scope the "mentions custom"/"mentions generated" check to the argument
+// list of each write-API call site specifically, so only a write whose own arguments reference
+// the protected directory is flagged. This is still a text heuristic (not real path/AST
+// analysis), but it catches the common computed-path case — e.g.
+// `writeFileSync(join("custom", "rules.ts"), ...)` — without over-triggering.
 //
 // This scan is a best-effort early warning for an obviously-misbehaving generator, not the actual
 // security boundary — it can always be defeated by import aliasing (`import { writeFile as save }
@@ -116,7 +129,7 @@ function extractBalancedArgs(source: string, openParenIndex: number): string {
 // of the real filesystem call, so no amount of renaming the call site changes what gets checked.
 // Chasing every possible obfuscation of this text scan has diminishing returns; deliberately not
 // doing so here.
-function hasSuspiciousCustomWrite(source: string): boolean {
+function hasSuspiciousWrite(source: string, mentions: (text: string) => boolean): boolean {
   const localConstants = collectLocalStringConstants(source)
   for (const api of WRITE_APIS) {
     // Only treat an occurrence as a genuine call site if the API name is immediately followed
@@ -128,7 +141,7 @@ function hasSuspiciousCustomWrite(source: string): boolean {
     while ((match = callPattern.exec(source)) !== null) {
       const openParenIndex = match.index + match[0].length - 1
       const args = extractBalancedArgs(source, openParenIndex)
-      if (mentionsCustom(args) || argsIndirectlyMentionCustom(args, localConstants)) {
+      if (mentions(args) || argsIndirectlyMention(args, localConstants, mentions)) {
         return true
       }
     }
@@ -208,11 +221,20 @@ export function checkGeneratedCustomSafety(args: {
 
     const source = readFileSync(scriptPath, "utf-8")
 
-    if (hasSuspiciousCustomWrite(source)) {
+    if (hasSuspiciousWrite(source, mentionsCustom)) {
       issues.push({
         severity: "error",
         code: "script_mentions_custom_write",
         message: `Script appears to mention custom/ while performing filesystem writes: ${scriptPath}`,
+        path: scriptPath,
+      })
+    }
+
+    if (hasSuspiciousWrite(source, mentionsGenerated)) {
+      issues.push({
+        severity: "error",
+        code: "script_mentions_generated_write",
+        message: `Script appears to write into generated/ using a raw filesystem call instead of writeGeneratedFile: ${scriptPath}`,
         path: scriptPath,
       })
     }
