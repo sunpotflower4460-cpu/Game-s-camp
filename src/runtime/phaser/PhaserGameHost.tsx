@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 import { useEffect, useRef, useState } from "react"
-import { createPhaserConfig } from "./createPhaserConfig"
+import { createPhaserConfig, type SceneClass } from "./createPhaserConfig"
 import { createPhaserGame } from "./createPhaserGame"
 import { destroyPhaserGame } from "./destroyPhaserGame"
 import {
@@ -26,7 +26,7 @@ export type PhaserGameHostProps = {
    * game; a module-level constant array is enough to keep this stable across renders since
    * classes themselves never change identity (no `useMemo` needed).
    */
-  scenes?: Phaser.Types.Scenes.SceneType[]
+  scenes?: SceneClass[]
 }
 
 function statusMessage(status: RuntimeStatus, definition: GeneratedGameDefinition): string {

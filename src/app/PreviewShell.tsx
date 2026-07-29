@@ -1,6 +1,6 @@
-import type Phaser from "phaser"
 import { useState } from "react"
 import PhaserGameHost from "../runtime/phaser/PhaserGameHost"
+import type { SceneClass } from "../runtime/phaser/createPhaserConfig"
 import type { RuntimeSnapshot } from "../runtime/phaser/runtimeGameDefinition.types"
 import { createIdleRuntimeSnapshot } from "../runtime/phaser/runtimeGameDefinition.types"
 import { GameScene } from "../../generated/games/puni-sumo/GameScene"
@@ -12,7 +12,7 @@ import { TitleScene } from "../../generated/games/puni-sumo/TitleScene"
 // required for React StrictMode's mount -> cleanup -> mount to work (a Scene instance carries
 // internal state tied to the specific Game it was added to and cannot be reused across two).
 // A module-level array is referentially stable across renders without needing useMemo.
-const PUNI_SUMO_SCENES: Phaser.Types.Scenes.SceneType[] = [TitleScene, GameScene, ResultScene]
+const PUNI_SUMO_SCENES: SceneClass[] = [TitleScene, GameScene, ResultScene]
 
 function PreviewShell() {
   const [runtimeSnapshot, setRuntimeSnapshot] = useState<RuntimeSnapshot>(createIdleRuntimeSnapshot())

@@ -1,5 +1,5 @@
 import { isAbsolute, join, relative, resolve } from "node:path"
-import { existsSync, readdirSync, rmSync } from "node:fs"
+import { existsSync, readdirSync, realpathSync, rmSync } from "node:fs"
 
 export class UnsafeGeneratedPrunePathError extends Error {
   readonly attemptedPath: string
@@ -53,6 +53,23 @@ export function pruneStaleGeneratedFiles(args: {
 
   if (!existsSync(outputDirAbs)) {
     return []
+  }
+
+  // `outputDirAbs` (or one of its ancestors) could itself be a symlink to `custom/` or an
+  // external directory even though the lexical checks above passed — `realpathSync` resolves
+  // the whole chain, so this catches that before `readdirSync`/`rmSync` ever touch the target.
+  const realOutputDir = realpathSync(outputDirAbs)
+  if (isWithin(customRootAbs, realOutputDir)) {
+    throw new UnsafeGeneratedPrunePathError(
+      `Refusing to prune through a symlink into the protected custom/ directory: ${args.outputDir}`,
+      args.outputDir,
+    )
+  }
+  if (!isWithin(generatedRootAbs, realOutputDir)) {
+    throw new UnsafeGeneratedPrunePathError(
+      `Refusing to prune through a symlink that escapes generated/: ${args.outputDir}`,
+      args.outputDir,
+    )
   }
 
   const expected = new Set(args.expectedFileNames)

@@ -1,18 +1,75 @@
 import { existsSync, readFileSync } from "node:fs"
-import { relative, resolve } from "node:path"
+import { isAbsolute, relative, resolve } from "node:path"
 
 import type {
   GeneratedCustomSafetyIssue,
   GeneratedCustomSafetyResult,
 } from "./generatedCustomSafety.types"
 
+// `resolve(relativePath)` always yields an absolute path (it resolves against `process.cwd()`),
+// so checking whether THAT starts with "/" is always true and can never actually detect nesting —
+// the correct test is whether the relative path itself, before resolving it against anything, is
+// already absolute (which `path.relative` only returns on Windows across different drives).
 function isInside(parent: string, child: string): boolean {
   const relativePath = relative(parent, child)
-  return (
-    Boolean(relativePath) &&
-    !relativePath.startsWith("..") &&
-    !resolve(relativePath).startsWith("/")
-  )
+  return relativePath !== "" && !relativePath.startsWith("..") && !isAbsolute(relativePath)
+}
+
+const WRITE_APIS = ["writeFileSync", "mkdirSync", "rmSync", "renameSync"]
+
+function mentionsCustom(text: string): boolean {
+  return text.includes("custom/") || text.includes('"custom"') || text.includes("'custom'")
+}
+
+// Extracts the balanced-paren argument text starting at the `(` found at `openParenIndex`, so a
+// nested call like `writeFileSync(join("custom", "rules.ts"), contents)` is inspected as a whole
+// instead of stopping at the first `)` (which belongs to the inner `join(...)`).
+function extractBalancedArgs(source: string, openParenIndex: number): string {
+  let depth = 0
+  let args = ""
+  for (let i = openParenIndex; i < source.length; i++) {
+    const char = source[i]
+    if (char === "(") {
+      depth++
+      if (depth === 1) {
+        continue
+      }
+    }
+    if (char === ")") {
+      depth--
+      if (depth === 0) {
+        break
+      }
+    }
+    args += char
+  }
+  return args
+}
+
+// A plain "does this file mention custom/ AND a write API anywhere" check would flag legitimate
+// scripts that reference "custom" for an unrelated reason (e.g. this very check's own runner,
+// which passes `customDir: "custom"` to `checkGeneratedCustomSafety` while separately writing its
+// own report). Instead, scope the "mentions custom" check to the argument list of each write-API
+// call site specifically, so only a write whose own arguments reference custom/ is flagged. This
+// is still a text heuristic (not real path/AST analysis), but it catches the common computed-path
+// case — e.g. `writeFileSync(join("custom", "rules.ts"), ...)` — without over-triggering.
+function hasSuspiciousCustomWrite(source: string): boolean {
+  for (const api of WRITE_APIS) {
+    // Only treat an occurrence as a genuine call site if the API name is immediately followed
+    // (modulo whitespace) by "(" — otherwise a bare mention (e.g. inside an `import { ... }`
+    // list) would make the code below jump ahead to the next unrelated "(" anywhere later in the
+    // file and misattribute that call's arguments to this API name.
+    const callPattern = new RegExp(`\\b${api}\\s*\\(`, "g")
+    let match: RegExpExecArray | null
+    while ((match = callPattern.exec(source)) !== null) {
+      const openParenIndex = match.index + match[0].length - 1
+      const args = extractBalancedArgs(source, openParenIndex)
+      if (mentionsCustom(args)) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 export function checkGeneratedCustomSafety(args: {
@@ -68,14 +125,8 @@ export function checkGeneratedCustomSafety(args: {
     }
 
     const source = readFileSync(scriptPath, "utf-8")
-    const suspiciousWrites =
-      source.includes("custom/") &&
-      (source.includes("writeFileSync") ||
-        source.includes("mkdirSync") ||
-        source.includes("rmSync") ||
-        source.includes("renameSync"))
 
-    if (suspiciousWrites) {
+    if (hasSuspiciousCustomWrite(source)) {
       issues.push({
         severity: "error",
         code: "script_mentions_custom_write",

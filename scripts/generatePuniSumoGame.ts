@@ -107,6 +107,11 @@ const templateEntry = templateRegistry.byId.get(recipe.template)
 if (!templateEntry) {
   fail(`Template is not registered: ${recipe.template}`)
 }
+if (recipe.genre !== templateEntry.manifest.genre) {
+  fail(
+    `Recipe genre (${recipe.genre}) does not match Template genre (${templateEntry.manifest.genre}): ${templateEntry.manifest.id}`,
+  )
+}
 
 const expectedFiles = Object.values(templateEntry.manifest.files).map((value) =>
   value.split("/").at(-1)?.replace(/\.tpl$/, ""),

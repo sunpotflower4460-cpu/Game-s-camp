@@ -1,5 +1,6 @@
+import { randomBytes } from "node:crypto"
 import { dirname, isAbsolute, relative, resolve } from "node:path"
-import { existsSync, lstatSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, mkdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs"
 
 export class UnsafeGeneratedWritePathError extends Error {
   readonly attemptedPath: string
@@ -105,6 +106,26 @@ export function writeGeneratedFile(args: {
     )
   }
 
-  writeFileSync(outputPathAbs, args.contents, "utf8")
+  // A destination that's hard-linked (nlink > 1) to a file elsewhere — e.g. under custom/ —
+  // looks like an ordinary file to `lstatSync` above, but writing into it in place would
+  // truncate and overwrite whatever else shares that same inode. Reject it, then always write
+  // via a temp file in the same directory followed by an atomic rename: rename() replaces the
+  // directory entry itself rather than the inode's contents, so it can't corrupt a hard-linked
+  // file even if this check somehow missed one (and it makes the write atomic as a side effect).
+  if (existingStat?.isFile() && existingStat.nlink > 1) {
+    throw new UnsafeGeneratedWritePathError(
+      `Refusing to write into a hard-linked destination (nlink=${existingStat.nlink}): ${args.outputPath}`,
+      args.outputPath,
+    )
+  }
+
+  const tempPath = `${outputPathAbs}.tmp-${process.pid}-${randomBytes(6).toString("hex")}`
+  writeFileSync(tempPath, args.contents, "utf8")
+  try {
+    renameSync(tempPath, outputPathAbs)
+  } catch (error) {
+    rmSync(tempPath, { force: true })
+    throw error
+  }
   return outputPathAbs
 }

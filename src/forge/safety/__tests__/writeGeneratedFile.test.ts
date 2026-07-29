@@ -1,5 +1,6 @@
 import {
   existsSync,
+  linkSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -96,6 +97,18 @@ describe("writeGeneratedFile", () => {
       writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
     ).toThrow(UnsafeGeneratedWritePathError)
     expect(existsSync(join(outsideDir, "nested"))).toBe(false)
+  })
+
+  it("rejects writing into a hard-linked destination, without touching the linked file", () => {
+    const linkedElsewhere = join(customRoot, "shared.ts")
+    writeFileSync(linkedElsewhere, "original contents\n", "utf8")
+    const outputPath = join(generatedRoot, "gameDefinition.ts")
+    linkSync(linkedElsewhere, outputPath)
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "malicious\n" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+    expect(readFileSync(linkedElsewhere, "utf8")).toBe("original contents\n")
   })
 
   it("rejects writing through a destination that is a dangling symlink", () => {

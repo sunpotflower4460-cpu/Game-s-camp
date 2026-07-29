@@ -108,6 +108,40 @@ describe("pruneStaleGeneratedFiles", () => {
     expect(existsSync(join(outputDir, "nested", "file.ts"))).toBe(true)
   })
 
+  it("rejects pruning through a symlinked outputDir that escapes generated/", () => {
+    rmSync(outputDir, { recursive: true, force: true })
+    const outsideDir = join(workDir, "outside-real")
+    mkdirSync(outsideDir, { recursive: true })
+    writeFileSync(join(outsideDir, "keep.txt"), "should not be touched\n", "utf8")
+    symlinkSync(outsideDir, outputDir, "dir")
+
+    expect(() =>
+      pruneStaleGeneratedFiles({
+        generatedRoot,
+        customRoot,
+        outputDir,
+        expectedFileNames: [],
+      }),
+    ).toThrow(UnsafeGeneratedPrunePathError)
+    expect(existsSync(join(outsideDir, "keep.txt"))).toBe(true)
+  })
+
+  it("rejects pruning through a symlinked outputDir that resolves into custom/", () => {
+    rmSync(outputDir, { recursive: true, force: true })
+    writeFileSync(join(customRoot, "keep.txt"), "should not be touched\n", "utf8")
+    symlinkSync(customRoot, outputDir, "dir")
+
+    expect(() =>
+      pruneStaleGeneratedFiles({
+        generatedRoot,
+        customRoot,
+        outputDir,
+        expectedFileNames: [],
+      }),
+    ).toThrow(UnsafeGeneratedPrunePathError)
+    expect(existsSync(join(customRoot, "keep.txt"))).toBe(true)
+  })
+
   it("rejects pruning inside the protected custom/ directory", () => {
     expect(() =>
       pruneStaleGeneratedFiles({

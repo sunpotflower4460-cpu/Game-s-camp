@@ -4,6 +4,18 @@ import { MiniActionResultScene } from "../scenes/MiniActionResultScene"
 import { MiniActionTitleScene } from "../scenes/MiniActionTitleScene"
 import type { GeneratedGameDefinition } from "./runtimeGameDefinition.types"
 
+/**
+ * A zero-argument-constructible Scene class — deliberately narrower than
+ * `Phaser.Types.Scenes.SceneType`, which also accepts a Scene *instance*. Accepting instances
+ * would let a caller pass an already-constructed Scene that's reused across boots (e.g. after
+ * React StrictMode's mount -> cleanup -> mount, or a Retry), which crashes because a Scene
+ * instance carries internal state tied to the one `Phaser.Game` it was first added to. Every
+ * generated Scene wrapper (`generated/games/<gameId>/{Title,Game,Result}Scene`) has its own
+ * zero-arg constructor that supplies its baked-in `GeneratedGameDefinition` to `super(...)`, so
+ * this type is exactly what callers are expected to provide.
+ */
+export type SceneClass = new () => Phaser.Scene
+
 export type CreatePhaserConfigOptions = {
   parent: HTMLElement
   definition: GeneratedGameDefinition
@@ -19,7 +31,7 @@ export type CreatePhaserConfigOptions = {
    * `generated/games/<gameId>/{Title,Game,Result}Scene` classes here instead, so the
    * generator's Scene wrappers are what the runtime actually boots.
    */
-  scenes?: Phaser.Types.Scenes.SceneType[]
+  scenes?: SceneClass[]
 }
 
 export function createPhaserConfig(options: CreatePhaserConfigOptions): Phaser.Types.Core.GameConfig {
