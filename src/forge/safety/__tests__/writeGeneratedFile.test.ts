@@ -1,4 +1,12 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -75,6 +83,19 @@ describe("writeGeneratedFile", () => {
       writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "malicious\n" }),
     ).toThrow(UnsafeGeneratedWritePathError)
     expect(readFileSync(outsideTarget, "utf8")).toBe("original contents\n")
+  })
+
+  it("rejects creating missing subdirectories through a symlinked ancestor, without creating anything outside generated/", () => {
+    const outsideDir = join(workDir, "outside-real")
+    mkdirSync(outsideDir, { recursive: true })
+    const linkPath = join(generatedRoot, "escape-link")
+    symlinkSync(outsideDir, linkPath, "dir")
+    const outputPath = join(linkPath, "nested", "gameDefinition.ts")
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+    expect(existsSync(join(outsideDir, "nested"))).toBe(false)
   })
 
   it("rejects writing through a destination that is a dangling symlink", () => {

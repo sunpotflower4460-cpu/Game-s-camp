@@ -1,17 +1,9 @@
 // Resolved configuration summary for {{title}}. The runtime reads gameDefinition.ts, not this
 // file; this exists only as a human-readable record of what the Assembler resolved.
 export const resolvedGameConfig = {
-  gameId: "{{gameId}}",
-  title: "{{title}}",
-  engine: "{{engine}}",
-  templateId: "{{templateId}}",
-  slots: {
-    playerController: "{{slot.playerController}}",
-    opponentController: "{{slot.opponentController}}",
-    mainStage: "{{slot.mainStage}}",
-    winLoseRule: "{{slot.winLoseRule}}",
-    resultUi: "{{slot.resultUi}}",
-    mainCamera: "{{slot.mainCamera}}",
-    timerUi: "{{slot.timerUi}}",
-  },
+  gameId: {{recipe.gameIdJson}},
+  title: {{recipe.titleJson}},
+  engine: {{recipe.engineJson}},
+  templateId: {{recipe.templateIdJson}},
+  slots: {{plan.slotsJson}},
 } as const

@@ -33,7 +33,9 @@ jobs:
       - name: Ensure generated outputs are up-to-date
         run: git diff --exit-code generated/
       - name: Ensure custom/ was not touched by generation
-        run: git diff --exit-code custom/
+        run: |
+          git diff --exit-code custom/
+          test -z "$(git status --porcelain custom/)"
       - name: Ensure reports are up-to-date
         run: git diff --exit-code reports/
       - run: npm run generate:schemas

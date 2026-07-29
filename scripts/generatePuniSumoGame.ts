@@ -1,7 +1,10 @@
 import { relative, sep } from "node:path"
 
+import { createAssemblerPlan } from "../src/forge/assembler/createAssemblerPlan"
 import type { AssemblerPlan } from "../src/forge/assembler/assemblerPlan.types"
 import { validateAssemblerPlan } from "../src/forge/assembler/validateAssemblerPlan"
+import { loadKitRegistry, LoadKitRegistryError } from "../src/forge/kit-registry/loadKitRegistry"
+import { validateKitRegistry } from "../src/forge/kit-registry/validateKitRegistry"
 import { gameRecipeSchema } from "../src/forge/recipe/gameRecipe.zod"
 import { renderTemplateSet } from "../src/forge/renderer/renderTemplateSet"
 import type { RenderContextValue } from "../src/forge/renderer/renderContext.types"
@@ -14,12 +17,12 @@ import {
 } from "../src/forge/template-registry/loadTemplateRegistry"
 import { validateTemplateRegistry } from "../src/forge/template-registry/validateTemplateRegistry"
 
-const GAME_ID = "puni-sumo"
+const GAME_DIR_SLUG = "puni-sumo"
 const RECIPE_PATH = "recipes/games/puni-sumo.recipe.json"
 const PLAN_PATH = "plans/puni-sumo.assembler-plan.json"
 const GENERATED_ROOT = "generated"
 const CUSTOM_ROOT = "custom"
-const OUTPUT_DIR = `${GENERATED_ROOT}/games/puni-sumo`
+const OUTPUT_DIR = `${GENERATED_ROOT}/games/${GAME_DIR_SLUG}`
 const REPORT_PATH = `${OUTPUT_DIR}/render-report.md`
 const RUNTIME_TYPES_PATH = "src/runtime/phaser/runtimeGameDefinition.types"
 const RUNTIME_SCENES_DIR = "src/runtime/scenes"
@@ -102,10 +105,57 @@ if (!templateEntry) {
   fail(`Template is not registered: ${recipe.template}`)
 }
 
-const slotAssignments = new Map<string, string>()
-for (const assignment of [...plan.requiredAssignments, ...plan.optionalAssignments]) {
-  slotAssignments.set(assignment.slotName, assignment.kitId)
+let kitRegistry
+try {
+  kitRegistry = loadKitRegistry("kits")
+} catch (error) {
+  if (error instanceof LoadKitRegistryError) {
+    fail(error.message)
+  }
+  throw error
 }
+
+const kitRegistryValidation = validateKitRegistry(kitRegistry)
+if (!kitRegistryValidation.ok) {
+  for (const errorMessage of kitRegistryValidation.errors) {
+    console.error(`[fail] GeneratePuniSumoGame: ${errorMessage}`)
+  }
+  process.exit(1)
+}
+
+function assignmentMap(assignments: AssemblerPlan["requiredAssignments"]): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const assignment of assignments) {
+    map.set(assignment.slotName, assignment.kitId)
+  }
+  return map
+}
+
+const freshPlan = createAssemblerPlan({ recipe, templateRegistry, kitRegistry })
+const persistedAssignments = assignmentMap([...plan.requiredAssignments, ...plan.optionalAssignments])
+const freshAssignments = assignmentMap([...freshPlan.requiredAssignments, ...freshPlan.optionalAssignments])
+const allAssignedSlotNames = new Set([...persistedAssignments.keys(), ...freshAssignments.keys()])
+const staleSlotMismatches: string[] = []
+for (const slotName of allAssignedSlotNames) {
+  const persistedKitId = persistedAssignments.get(slotName)
+  const freshKitId = freshAssignments.get(slotName)
+  if (persistedKitId !== freshKitId) {
+    staleSlotMismatches.push(
+      `slot "${slotName}": persisted plan has ${persistedKitId ?? "(unassigned)"}, current Recipe/Kit Registry/Template Registry resolve to ${
+        freshKitId ?? "(unassigned)"
+      }`,
+    )
+  }
+}
+if (staleSlotMismatches.length > 0) {
+  fail(
+    `Assembler Plan at ${PLAN_PATH} is stale relative to the current Recipe/Kit Registry/Template Registry. Re-run "npm run plan:assembler" to regenerate it.\n${staleSlotMismatches.join(
+      "\n",
+    )}`,
+  )
+}
+
+const slotAssignments = persistedAssignments
 
 for (const requiredSlot of templateEntry.manifest.requiredSlots) {
   if (!slotAssignments.has(requiredSlot.name)) {
@@ -113,27 +163,30 @@ for (const requiredSlot of templateEntry.manifest.requiredSlots) {
   }
 }
 
+const slotsForOutput: Record<string, string> = {}
+for (const slot of [...templateEntry.manifest.requiredSlots, ...templateEntry.manifest.optionalSlots]) {
+  const assignedKitId = slotAssignments.get(slot.name)
+  if (assignedKitId) {
+    slotsForOutput[slot.name] = assignedKitId
+  }
+}
+
 const tokenReplacements: Record<string, RenderContextValue> = {
   "scene.title": SCENE_KEYS.title,
   "scene.game": SCENE_KEYS.game,
   "scene.result": SCENE_KEYS.result,
-  "recipe.title": recipe.title,
-  "recipe.engine": recipe.engine,
-  "recipe.template": recipe.template,
   "recipe.tuningJson": JSON.stringify(recipe.tuning ?? {}, null, 2).split("\n").join("\n  "),
+  "plan.slotsJson": JSON.stringify(slotsForOutput, null, 2).split("\n").join("\n  "),
+  "recipe.gameIdJson": JSON.stringify(recipe.id),
+  "recipe.titleJson": JSON.stringify(recipe.title),
+  "recipe.engineJson": JSON.stringify(recipe.engine),
+  "recipe.templateIdJson": JSON.stringify(recipe.template),
   "import.runtimeTypes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_TYPES_PATH),
   "import.scenes": toRelativeImportPath(OUTPUT_DIR, RUNTIME_SCENES_DIR),
 }
 
-for (const slot of [...templateEntry.manifest.requiredSlots, ...templateEntry.manifest.optionalSlots]) {
-  const assignedKitId = slotAssignments.get(slot.name)
-  if (assignedKitId) {
-    tokenReplacements[`slot.${slot.name}`] = assignedKitId
-  }
-}
-
 const renderContext = {
-  gameId: GAME_ID,
+  gameId: recipe.id,
   title: recipe.title,
   templateId: recipe.template,
   engine: recipe.engine,

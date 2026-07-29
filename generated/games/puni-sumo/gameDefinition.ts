@@ -2,7 +2,7 @@ import type { GeneratedGameDefinition } from "../../../src/runtime/phaser/runtim
 
 export const generatedGameDefinition: GeneratedGameDefinition = {
   schemaVersion: "0.1",
-  gameId: "puni-sumo",
+  gameId: "puni-sumo-forest-v1",
   title: "森のぷに相撲",
   engine: "phaser",
   templateId: "template.miniAction.v1",
@@ -12,13 +12,13 @@ export const generatedGameDefinition: GeneratedGameDefinition = {
     result: "ResultScene",
   },
   slots: {
-    playerController: "controller.puniPush.v1",
-    opponentController: "controller.puniOpponentAI.v1",
-    mainStage: "stage.circularArenaForest.v1",
-    winLoseRule: "rule.ringOut.v1",
-    resultUi: "ui.resultScreen.v1",
-    mainCamera: "camera.isometricSoft.v1",
-    timerUi: "ui.roundTimer.v1",
+    "playerController": "controller.puniPush.v1",
+    "opponentController": "controller.puniOpponentAI.v1",
+    "mainStage": "stage.circularArenaForest.v1",
+    "winLoseRule": "rule.ringOut.v1",
+    "resultUi": "ui.resultScreen.v1",
+    "mainCamera": "camera.isometricSoft.v1",
+    "timerUi": "ui.roundTimer.v1"
   },
   tuning: {
     "moveSpeed": 180,

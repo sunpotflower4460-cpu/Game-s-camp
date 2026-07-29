@@ -1,5 +1,5 @@
 import { dirname, isAbsolute, relative, resolve } from "node:path"
-import { lstatSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
 
 export class UnsafeGeneratedWritePathError extends Error {
   readonly attemptedPath: string
@@ -17,6 +17,18 @@ function isWithin(root: string, target: string): boolean {
   }
   const rel = relative(root, target)
   return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel)
+}
+
+function findNearestExistingAncestor(path: string): string {
+  let current = path
+  while (!existsSync(current)) {
+    const parent = dirname(current)
+    if (parent === current) {
+      return current
+    }
+    current = parent
+  }
+  return current
 }
 
 /**
@@ -50,6 +62,22 @@ export function writeGeneratedFile(args: {
   }
 
   const outputDir = dirname(outputPathAbs)
+
+  // `mkdirSync(..., { recursive: true })` follows any symlinked ancestor directory while
+  // creating missing path segments, so it could create real directories outside `generatedRoot`
+  // before the post-creation check below runs. Check the deepest ALREADY-EXISTING ancestor's
+  // real path first — if it resolves outside `generatedRoot`, refuse before creating anything.
+  const existingAncestor = findNearestExistingAncestor(outputDir)
+  if (isWithin(generatedRootAbs, existingAncestor)) {
+    const realExistingAncestor = realpathSync(existingAncestor)
+    if (!isWithin(generatedRootAbs, realExistingAncestor)) {
+      throw new UnsafeGeneratedWritePathError(
+        `Refusing to create directories through a symlink that escapes generated/: ${args.outputPath}`,
+        args.outputPath,
+      )
+    }
+  }
+
   mkdirSync(outputDir, { recursive: true })
 
   const realOutputDir = realpathSync(outputDir)
