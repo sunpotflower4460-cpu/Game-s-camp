@@ -21,6 +21,7 @@ jobs:
 
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run test
       - run: npm run validate:recipes
       - run: npm run validate:kits
       - run: npm run validate:kit-registry

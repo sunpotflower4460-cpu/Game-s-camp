@@ -1,11 +1,26 @@
+import { useState } from "react"
+import PhaserGameHost from "../runtime/phaser/PhaserGameHost"
+import type { RuntimeSnapshot } from "../runtime/phaser/runtimeGameDefinition.types"
+import { createIdleRuntimeSnapshot } from "../runtime/phaser/runtimeGameDefinition.types"
+import { runtimeFoundationDefinition } from "./runtimeFoundationDefinition"
+
 function PreviewShell() {
+  const [runtimeSnapshot, setRuntimeSnapshot] = useState<RuntimeSnapshot>(createIdleRuntimeSnapshot())
+
   return (
     <section className="preview-shell">
       <h2>Preview Shell</h2>
-      <p className="runtime-status">Runtime status: <span className="status-badge">idle</span></p>
+      <p className="runtime-status">
+        Runtime status: <span className="status-badge">{runtimeSnapshot.status}</span>
+      </p>
 
-      <div className="game-runtime-placeholder">
-        <p>Game runtime placeholder</p>
+      <div className="phaser-game-host-frame">
+        <PhaserGameHost
+          definition={runtimeFoundationDefinition}
+          width={390}
+          height={640}
+          onStatusChange={setRuntimeSnapshot}
+        />
       </div>
 
       <div className="future-slots">
@@ -36,12 +51,16 @@ function PreviewShell() {
             <span className="slot-status">— available</span>
           </li>
           <li>
-            <span className="slot-label">Runtime wiring</span>
-            <span className="slot-status">— not yet</span>
+            <span className="slot-label">Phaser runtime foundation</span>
+            <span className="slot-status">— available (Phase 6.0)</span>
           </li>
           <li>
-            <span className="slot-label">Playable Phaser game</span>
-            <span className="slot-status">— not yet</span>
+            <span className="slot-label">Runtime wiring to generated output</span>
+            <span className="slot-status">— not yet (Phase 6.1)</span>
+          </li>
+          <li>
+            <span className="slot-label">Playable Puni Sumo gameplay</span>
+            <span className="slot-status">— not yet (Phase 6.2)</span>
           </li>
         </ul>
       </div>

@@ -80,3 +80,24 @@ The check verifies:
 - `custom/` exists,
 - neither directory is nested inside the other,
 - renderer/assembler scripts do not write into `custom/`.
+
+## Phase 6.0 runtime foundation gate
+
+Phase 6.0 adds a machine-check layer for the Phaser runtime contract itself, ahead of any
+actual gameplay:
+
+- `phaser` boots inside React without throwing, and exposes a `RuntimeStatus` of
+  `idle | loading | ready | playing | result | error`.
+- Unmounting the host destroys the Phaser `Game` instance, removes its listeners, and leaves
+  no dangling timers.
+- Mounting twice in React StrictMode (dev double-invoke) still results in exactly one live
+  Phaser `Game` instance.
+- `RuntimeKitRegistry` resolution fails with a clear, typed error for an unregistered Kit ID
+  instead of silently doing nothing.
+- `mergeGameOverrides` applies Kit defaults, then Recipe tuning, then custom overrides, in that
+  order.
+
+These are covered by Vitest unit tests under `src/runtime/phaser/__tests__/` (`npm run test`).
+Full browser-level boot/mount/unmount verification (Playwright) is deferred to Phase 6.4; this
+phase intentionally scopes verification to unit-testable runtime logic rather than adding a
+browser test runner.
