@@ -1,7 +1,11 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-As of Phase 5, GameRecipe/KitManifest/TemplateManifest schemas plus Kit/Template Registry and recipe compatibility validation exist, runtime-neutral Kit skeletons are available under `src/kits/`, mini-action template placeholders are available under `templates/mini-action/files/`, and safe dry-run generated placeholders exist under `generated/games/puni-sumo/`.
+As of Phase 6.0, GameRecipe/KitManifest/TemplateManifest schemas plus Kit/Template Registry and
+recipe compatibility validation exist, runtime-neutral Kit skeletons are available under
+`src/kits/`, mini-action template placeholders are available under `templates/mini-action/files/`,
+safe dry-run generated placeholders exist under `generated/games/puni-sumo/`, and a Phaser
+runtime foundation now exists under `src/runtime/phaser/` and `src/runtime/scenes/`.
 
 ## Target structure
 
@@ -80,6 +84,19 @@ src/
         ResultScreen.ts
         ResultScreen.fixture.ts
   runtime/
+    phaser/
+      PhaserGameHost.tsx
+      createPhaserGame.ts
+      createPhaserConfig.ts
+      destroyPhaserGame.ts
+      RuntimeKitRegistry.ts
+      runtimeKit.types.ts
+      runtimeGameDefinition.types.ts
+      mergeGameOverrides.ts
+    scenes/
+      MiniActionTitleScene.ts
+      MiniActionGameScene.ts
+      MiniActionResultScene.ts
   forge/
     recipe/
     kit-registry/
@@ -123,3 +140,15 @@ These are still non-playable and not wired into runtime.
 Phase 5.5 introduces the protected custom layer.
 `custom/games/puni-sumo/` contains hand-authored or AI-authored files that must survive regeneration.
 Renderer and assembler scripts must not write into `custom/`.
+
+## Phase 6.0 src/runtime/
+
+Phase 6.0 promotes `src/runtime/` from a state-type-only skeleton into a real runtime
+contract, split into `src/runtime/phaser/` (Phaser Game lifecycle, Kit runtime registry,
+typed `GeneratedGameDefinition`, override merge order) and `src/runtime/scenes/` (generic
+placeholder Title/Game/Result scenes). The previous flat skeleton files
+(`GameRuntime.ts`, `SceneHost.ts`, `InputManager.ts`, `AssetManager.ts`, `RuntimeEvents.ts`)
+are consolidated into this contract rather than left as unused dead code.
+
+This runtime does not yet read from `generated/games/puni-sumo/` (Phase 6.1) and does not yet
+run Puni Sumo gameplay (Phase 6.2).

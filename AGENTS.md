@@ -36,18 +36,29 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 5.5: Custom layer skeleton and generated/custom safety guard.
+Phase 6.0: Runtime Foundation.
+
 Allowed in this phase:
-- protected `custom/games/puni-sumo/` skeleton files
-- generated/custom safety check
-- safety report under `reports/`
-- CI wiring for safety checks
-- documentation updates for generated/custom ownership
+- `phaser` runtime dependency, exact-pinned (`4.2.1`)
+- mounting a Phaser Canvas inside React (single instance, StrictMode-safe)
+- the runtime contract under `src/runtime/phaser/` and `src/runtime/scenes/`
+  (`PhaserGameHost`, `createPhaserGame`, `createPhaserConfig`, `destroyPhaserGame`,
+  `RuntimeKitRegistry`, `runtimeKit.types`, `runtimeGameDefinition.types`, `mergeGameOverrides`)
+- generic placeholder scenes that prove the Title → Game → Result flow and the
+  `idle | loading | ready | playing | result | error` runtime state machine
+- preparing (not yet consuming from `generated/`) a typed `GeneratedGameDefinition`
+- a minimal Vitest-based runtime smoke test
+- consolidating the old `src/runtime/*.ts` dead skeletons into the new runtime contract
 
 Not allowed in this phase:
-- Phaser
-- playable Puni Sumo
-- runtime wiring
-- renderer or assembler writing into `custom/`
-- Playwright e2e tests
-- dependency upgrade refactors
+- hand-editing `generated/`
+- writing to `custom/` from runtime or generator code
+- actual Puni Sumo gameplay (player control, opponent AI, push/collision, ring-out,
+  timer, win/lose) — that is Phase 6.2
+- visual polish, procedural art, or audio — that is Phase 6.3
+- generator changes that make `generated/games/puni-sumo/` runtime-consumable — that is Phase 6.1
+- complex progression, monetization, or online features
+- App Store / Capacitor packaging
+- unrelated dependency upgrades
+
+See `Game-s-camp_Claude_Code_Completion_Master.md` for the full Phase 6.0–6.5 plan.

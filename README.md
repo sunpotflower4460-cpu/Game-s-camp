@@ -12,10 +12,15 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 5.5 adds a protected custom layer skeleton and generated/custom safety guard on top of the Phase 5 safe template renderer dry-run and Phase 5.1 semantic assignment cleanup.
+Phase 6.0 adds the Phaser runtime foundation on top of the Phase 5.5 protected custom layer
+and generated/custom safety guard.
 
-This is not a game implementation yet.
-Phaser and playable Puni Sumo gameplay are intentionally not included in this phase.
+This is still not a playable game yet. Phase 6.0 wires a Phaser `Game` into React through a
+single-responsibility runtime contract (`src/runtime/phaser/`, `src/runtime/scenes/`) and proves
+the mount → boot → destroy lifecycle with generic placeholder scenes and a runtime state
+machine (`idle | loading | ready | playing | result | error`). Actual Puni Sumo gameplay
+(movement, opponent AI, push/collision, ring-out, timer, win/lose) is not included until
+Phase 6.2, once Phase 6.1 wires real generated definitions into this runtime.
 
 ## Non-negotiable Rules
 
@@ -41,6 +46,8 @@ Other available commands:
 npm run build       # type-check and build for production
 npm run preview     # preview the production build locally
 npm run typecheck   # type-check without emitting files
+npm run test        # run Vitest runtime smoke tests once
+npm run test:watch  # run Vitest in watch mode
 ```
 
 ## Recipe and Kit validation
@@ -97,22 +104,57 @@ Current limits:
 
 ## Custom layer and generated/custom safety
 Phase 5.5 introduces a protected `custom/` layer and a generated/custom safety check.
+`custom/` is still not read by the runtime yet — that is Phase 6.3.
+
+## Phaser runtime foundation
+
+Phase 6.0 adds the `phaser` dependency (exact-pinned `4.2.1`) and a runtime contract:
+
+```txt
+src/runtime/phaser/
+  PhaserGameHost.tsx        React component: mounts/destroys exactly one Phaser.Game
+  createPhaserGame.ts       new Phaser.Game(config) wrapper
+  createPhaserConfig.ts     builds a Phaser.Types.Core.GameConfig from a GeneratedGameDefinition
+  destroyPhaserGame.ts      null-safe game.destroy(true) wrapper
+  RuntimeKitRegistry.ts     resolves Kit IDs to runtime adapters; fails clearly if unregistered
+  runtimeKit.types.ts       RuntimeKitAdapter / RuntimeKitModule contracts
+  runtimeGameDefinition.types.ts  GeneratedGameDefinition + RuntimeStatus types
+  mergeGameOverrides.ts     Kit defaults -> Recipe tuning -> custom overrides merge order
+src/runtime/scenes/
+  MiniActionTitleScene.ts
+  MiniActionGameScene.ts
+  MiniActionResultScene.ts
+```
+
+These scenes are intentionally generic placeholders (Title → Game → Result) and do not yet
+contain Puni Sumo gameplay. `RuntimeKitRegistry` resolution, `mergeGameOverrides`,
+`destroyPhaserGame`, and `createPhaserConfig` are covered by Vitest unit tests under
+`src/runtime/phaser/__tests__/`. The `canvas` devDependency is required so that importing
+`phaser` itself (which feature-detects a 2D canvas context at module load time) does not throw
+under Vitest's `jsdom` environment; it is test-only and is not part of the production bundle.
+
+Full end-to-end boot verification (Title → Start → Playing → Finish → Result → Replay, on both
+a desktop viewport and a 390×844 mobile viewport, with exactly one `<canvas>` at all times and no
+page errors) was confirmed manually against the Vite dev server in this phase; automating it with
+Playwright is Phase 6.4 scope.
 
 ## Current Phase
-Phase 5.5: Custom layer skeleton and generated/custom safety guard.
+Phase 6.0: Runtime Foundation.
 Allowed in this phase:
-- protected `custom/games/puni-sumo/` skeleton files
-- generated/custom safety check
-- safety report under `reports/`
-- CI wiring for safety checks
-- documentation updates for generated/custom ownership
+- `phaser` runtime dependency, exact-pinned
+- Phaser Canvas mount inside React (StrictMode-safe, single instance, full cleanup on unmount)
+- runtime registry / runtime contract under `src/runtime/phaser/` and `src/runtime/scenes/`
+- generic placeholder scenes proving the Title/Game/Result flow and runtime state machine
+- preparing (not yet consuming) a typed `GeneratedGameDefinition`
+- Vitest-based runtime smoke tests
 Not allowed in this phase:
-- Phaser
-- playable Puni Sumo
-- runtime wiring
-- renderer or assembler writing into `custom/`
-- Playwright e2e tests
-- dependency upgrade refactors
+- hand-editing `generated/`
+- writing to `custom/` from runtime or generator code
+- actual Puni Sumo gameplay (movement, AI, push, ring-out, timer, win/lose)
+- visual polish, procedural art, or audio
+- generator changes that make `generated/games/puni-sumo/` runtime-consumable (Phase 6.1)
+- Playwright e2e tests (Phase 6.4)
+- unrelated dependency upgrades
 
 ## Generated JSON Schemas
 
@@ -128,7 +170,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 5.5 verification checklist
+## Phase 6.0 verification checklist
 
 Run the following commands and confirm all succeed:
 
@@ -144,5 +186,9 @@ npm run plan:assembler
 npm run render:dry-run
 npm run check:generated-custom-safety
 npm run generate:schemas
+npm run test
 npm run build
 ```
+
+A baseline audit recorded before Phase 6.0 work started is available at
+`reports/baseline-audit.md`.

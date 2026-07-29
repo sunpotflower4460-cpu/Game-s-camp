@@ -15,6 +15,8 @@
     "plan:assembler": "tsx scripts/createAssemblerPlan.ts",
     "render:dry-run": "tsx scripts/renderPuniSumoDryRun.ts",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "validate:compatibility": "tsx scripts/validateRecipeCompatibility.ts",
     "validate:kits": "tsx scripts/validateAllKits.ts",
@@ -23,6 +25,7 @@
     "validate:template-registry": "tsx scripts/validateTemplateRegistry.ts"
   },
   "dependencies": {
+    "phaser": "4.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"
@@ -32,9 +35,12 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^6.0.2",
+    "canvas": "^3.2.3",
+    "jsdom": "26.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.5.3",
     "vite": "^8.0.14",
+    "vitest": "^4.1.10",
     "zod-to-json-schema": "^3.23.5"
   }
 }
