@@ -40,6 +40,12 @@ function statusMessage(status: RuntimeStatus, definition: GeneratedGameDefinitio
 const DEFAULT_WIDTH = 720
 const DEFAULT_HEIGHT = 1280
 
+// Phaser's own boot sequence (renderer + texture manager setup, up to Core.Events.READY) runs
+// asynchronously and throws no catchable exception if it stalls. A per-instance timeout, cleared
+// as soon as READY fires, is the only way to surface that failure without a page-wide `window`
+// error listener that would also catch unrelated errors from React or other mounted hosts.
+const BOOT_TIMEOUT_MS = 8000
+
 function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGameHostProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const gameRef = useRef<Phaser.Game | null>(null)
@@ -99,12 +105,30 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
       })
     }
 
+    let bootTimeoutId: ReturnType<typeof setTimeout> | undefined
+    const clearBootTimeout = () => {
+      if (bootTimeoutId !== undefined) {
+        clearTimeout(bootTimeoutId)
+        bootTimeoutId = undefined
+      }
+    }
+
     try {
       const config = createPhaserConfig({ parent: container, definition, width, height })
       game = createPhaserGame(config)
       gameRef.current = game
       game.events.on(RUNTIME_STATUS_EVENT, handleStatus)
       game.events.on(RUNTIME_ERROR_EVENT, handleSceneError)
+      game.events.once(Phaser.Core.Events.READY, clearBootTimeout)
+
+      bootTimeoutId = setTimeout(() => {
+        updateSnapshot({
+          status: "error",
+          gameId: definition.gameId,
+          message: statusMessage("error", definition),
+          error: { message: `Phaser did not finish booting within ${BOOT_TIMEOUT_MS}ms.` },
+        })
+      }, BOOT_TIMEOUT_MS)
     } catch (caught) {
       updateSnapshot({
         status: "error",
@@ -116,6 +140,7 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
 
     return () => {
       cancelled = true
+      clearBootTimeout()
       if (game) {
         game.events.off(RUNTIME_STATUS_EVENT, handleStatus)
         game.events.off(RUNTIME_ERROR_EVENT, handleSceneError)
