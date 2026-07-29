@@ -7,11 +7,25 @@ import { explainGeneratedCustomSafety } from "../src/forge/safety/explainGenerat
 const REPORT_PATH = "reports/generated-custom-safety.md"
 const SCRIPTS_DIR = "scripts"
 
+const SCRIPT_EXTENSIONS = [".ts", ".js"]
+
 function discoverScripts(rootDir: string): string[] {
-  return readdirSync(rootDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
-    .map((entry) => join(rootDir, entry.name))
-    .sort()
+  const scripts: string[] = []
+
+  for (const entry of readdirSync(rootDir, { withFileTypes: true })) {
+    const path = join(rootDir, entry.name)
+
+    if (entry.isDirectory()) {
+      scripts.push(...discoverScripts(path))
+      continue
+    }
+
+    if (entry.isFile() && SCRIPT_EXTENSIONS.some((extension) => entry.name.endsWith(extension))) {
+      scripts.push(path)
+    }
+  }
+
+  return scripts.sort()
 }
 
 const result = checkGeneratedCustomSafety({

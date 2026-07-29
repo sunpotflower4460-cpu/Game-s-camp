@@ -122,8 +122,9 @@ Phase 6.1 adds machine-checks around the generator itself:
   (`src/forge/safety/writeGeneratedFile.ts`), which is unit-tested to reject: writes outside
   `generated/`, path traversal (`..`), absolute paths that resolve outside `generated/`, symlink
   escapes, and any write under `custom/`.
-- `check:generated-custom-safety` discovers generator scripts under `scripts/` generically
-  instead of relying on a hardcoded list, so a renamed or newly added generator is still covered.
+- `check:generated-custom-safety` discovers generator scripts under `scripts/` recursively
+  (`.ts` and `.js`) instead of relying on a hardcoded list, so a renamed, nested, or newly added
+  generator is still covered.
 - `generated/` and `custom/` are part of the TypeScript project graph (`tsc -b`), so an import
   error in generated output or a shape mismatch in a custom override fails typecheck, not just at
   runtime.

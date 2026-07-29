@@ -1,5 +1,5 @@
 import { dirname, isAbsolute, relative, resolve } from "node:path"
-import { mkdirSync, realpathSync, writeFileSync } from "node:fs"
+import { lstatSync, mkdirSync, realpathSync, writeFileSync } from "node:fs"
 
 export class UnsafeGeneratedWritePathError extends Error {
   readonly attemptedPath: string
@@ -56,6 +56,23 @@ export function writeGeneratedFile(args: {
   if (!isWithin(generatedRootAbs, realOutputDir)) {
     throw new UnsafeGeneratedWritePathError(
       `Refusing to write through a symlink that escapes generated/: ${args.outputPath}`,
+      args.outputPath,
+    )
+  }
+
+  // `writeFileSync` follows a symlink at the destination itself (even a dangling one), which
+  // would let an existing symlink redirect this write outside `generatedRoot` even though the
+  // checks above only examined its containing directory. `lstatSync` never follows symlinks, so
+  // this rejects that case before anything is opened for writing.
+  let existingStat: ReturnType<typeof lstatSync> | undefined
+  try {
+    existingStat = lstatSync(outputPathAbs)
+  } catch {
+    existingStat = undefined
+  }
+  if (existingStat?.isSymbolicLink()) {
+    throw new UnsafeGeneratedWritePathError(
+      `Refusing to write through an existing symlink at the destination: ${args.outputPath}`,
       args.outputPath,
     )
   }

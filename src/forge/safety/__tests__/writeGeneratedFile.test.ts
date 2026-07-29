@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -59,6 +59,27 @@ describe("writeGeneratedFile", () => {
     const linkPath = join(generatedRoot, "escape-link")
     symlinkSync(outsideDir, linkPath, "dir")
     const outputPath = join(linkPath, "sneaky.ts")
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+  })
+
+  it("rejects writing through a destination that is itself a symlink escaping generated/, without touching the target", () => {
+    const outsideTarget = join(workDir, "outside-target.ts")
+    writeFileSync(outsideTarget, "original contents\n", "utf8")
+    const outputPath = join(generatedRoot, "gameDefinition.ts")
+    symlinkSync(outsideTarget, outputPath)
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "malicious\n" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+    expect(readFileSync(outsideTarget, "utf8")).toBe("original contents\n")
+  })
+
+  it("rejects writing through a destination that is a dangling symlink", () => {
+    const outputPath = join(generatedRoot, "gameDefinition.ts")
+    symlinkSync(join(workDir, "does-not-exist.ts"), outputPath)
 
     expect(() =>
       writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),

@@ -141,10 +141,12 @@ If a change should survive regeneration, it belongs in `custom/`, a Kit, a Templ
 These are not playable game outputs.
 They are planning artifacts used before runtime-wired `generated/` output exists.
 
-## Phase 5 generated dry-run
+## Phase 5 generated dry-run (superseded by Phase 6.1)
 
-`generated/games/puni-sumo/` now contains dry-run placeholder outputs rendered from `.tpl` files.
-These are still non-playable and not wired into runtime.
+Phase 5 originally rendered `generated/games/puni-sumo/` as dry-run placeholder output, not
+wired into any runtime. That is no longer the current state — see "Phase 6.1 Forge-to-Runtime
+Generation" below for what `generated/games/puni-sumo/` actually contains and how it's wired
+today. This section is kept only for phase history.
 
 ## Phase 5.5 custom/
 
