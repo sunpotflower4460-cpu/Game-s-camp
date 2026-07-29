@@ -1,8 +1,10 @@
+import { execFileSync } from "node:child_process"
 import {
   existsSync,
   linkSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   symlinkSync,
@@ -12,6 +14,30 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { UnsafeGeneratedWritePathError, writeGeneratedFile } from "../writeGeneratedFile"
+
+// Mounts a size-capped tmpfs so a write that exceeds its capacity fails with a real ENOSPC —
+// the only reliable, non-mocked way to reproduce "the initial write to the temp path partially
+// creates the file, then fails" (as opposed to failing before creating anything at all, which
+// wouldn't distinguish the fix from the bug it fixes). Returns null if mounting isn't permitted
+// in this environment (e.g. an unprivileged CI container), so the test can skip instead of
+// false-failing on an unrelated platform limitation.
+function withTinyTmpfs<T>(sizeBytes: number, run: (mountPoint: string) => T): T | null {
+  const mountPoint = mkdtempSync(join(tmpdir(), "forge-tinyfs-"))
+  try {
+    execFileSync("mount", ["-t", "tmpfs", "-o", `size=${sizeBytes}`, "tmpfs", mountPoint], {
+      stdio: "ignore",
+    })
+  } catch {
+    rmSync(mountPoint, { recursive: true, force: true })
+    return null
+  }
+  try {
+    return run(mountPoint)
+  } finally {
+    execFileSync("umount", [mountPoint])
+    rmSync(mountPoint, { recursive: true, force: true })
+  }
+}
 
 describe("writeGeneratedFile", () => {
   let workDir: string
@@ -149,6 +175,33 @@ describe("writeGeneratedFile", () => {
     expect(() =>
       writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
     ).toThrow(UnsafeGeneratedWritePathError)
+  })
+
+  it("leaves no orphaned temp file when the initial write to the temp path itself fails (disk full)", () => {
+    const leftoverFiles = withTinyTmpfs(64 * 1024, (mountPoint) => {
+      const tinyGeneratedRoot = join(mountPoint, "generated")
+      mkdirSync(tinyGeneratedRoot, { recursive: true })
+      // Leave only a few KB free so the real write below can't possibly fit.
+      writeFileSync(join(mountPoint, "filler.bin"), Buffer.alloc(60 * 1024))
+      const outputPath = join(tinyGeneratedRoot, "gameDefinition.ts")
+
+      expect(() =>
+        writeGeneratedFile({
+          generatedRoot: tinyGeneratedRoot,
+          customRoot,
+          outputPath,
+          contents: "x".repeat(128 * 1024),
+        }),
+      ).toThrow()
+
+      return readdirSync(tinyGeneratedRoot)
+    })
+
+    if (leftoverFiles === null) {
+      // Mounting a tmpfs isn't permitted in this environment — skip rather than false-fail.
+      return
+    }
+    expect(leftoverFiles).toEqual([])
   })
 
   it("returns the resolved absolute output path on success", () => {

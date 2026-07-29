@@ -162,8 +162,8 @@ export function writeGeneratedFile(args: {
   const outputPathAbs = resolveSafeGeneratedWritePath(args)
 
   const tempPath = `${outputPathAbs}.tmp-${process.pid}-${randomBytes(6).toString("hex")}`
-  writeFileSync(tempPath, args.contents, "utf8")
   try {
+    writeFileSync(tempPath, args.contents, "utf8")
     renameSync(tempPath, outputPathAbs)
   } catch (error) {
     rmSync(tempPath, { force: true })
