@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -177,6 +177,24 @@ describe("checkGeneratedCustomSafety", () => {
     const result = checkGeneratedCustomSafety({
       generatedDir,
       customDir: generatedDir,
+      scriptsToInspect: [],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.issues.some((issue) => issue.code === "custom_and_generated_identical")).toBe(true)
+  })
+
+  it("reports generated/ and custom/ as identical when two different symlinks resolve to the same real directory", () => {
+    const sharedTarget = join(workDir, "shared-real")
+    mkdirSync(sharedTarget, { recursive: true })
+    rmSync(generatedDir, { recursive: true, force: true })
+    rmSync(customDir, { recursive: true, force: true })
+    symlinkSync(sharedTarget, generatedDir, "dir")
+    symlinkSync(sharedTarget, customDir, "dir")
+
+    const result = checkGeneratedCustomSafety({
+      generatedDir,
+      customDir,
       scriptsToInspect: [],
     })
 

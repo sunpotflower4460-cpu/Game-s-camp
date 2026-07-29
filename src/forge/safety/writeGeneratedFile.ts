@@ -33,16 +33,17 @@ function findNearestExistingAncestor(path: string): string {
 }
 
 /**
- * The single place every generator script must write through. Enforces that output stays under
- * `generatedRoot`, rejects any write under `customRoot` outright (even if it would otherwise
- * resolve inside `generatedRoot`), and re-checks after directory creation so a symlinked
- * ancestor directory can't silently redirect a write outside `generatedRoot`.
+ * Runs every safety check `writeGeneratedFile` performs — path traversal, `custom/` escape,
+ * symlink escapes (destination, ancestor directories, ancestors only created via `mkdirSync`'s
+ * recursive creation), and hard-linked destinations — without writing anything. Exported so a
+ * caller committing many files at once (e.g. `renderTemplateSet`) can validate every destination
+ * first and only start writing once the whole batch is known-safe: otherwise a later file's
+ * rejection would leave earlier files already overwritten while later ones stay untouched.
  */
-export function writeGeneratedFile(args: {
+export function resolveSafeGeneratedWritePath(args: {
   generatedRoot: string
   customRoot?: string
   outputPath: string
-  contents: string
 }): string {
   const generatedRootAbs = resolve(args.generatedRoot)
   const customRootAbs = resolve(args.customRoot ?? "custom")
@@ -134,6 +135,24 @@ export function writeGeneratedFile(args: {
       args.outputPath,
     )
   }
+
+  return outputPathAbs
+}
+
+/**
+ * The single place every generator script must write through. Validates the destination via
+ * `resolveSafeGeneratedWritePath`, then writes via a temp file in the same directory followed by
+ * an atomic rename — rename() replaces the directory entry itself rather than the inode's
+ * contents, so it can't corrupt a hard-linked file even if validation somehow missed one (and it
+ * makes the write atomic as a side effect).
+ */
+export function writeGeneratedFile(args: {
+  generatedRoot: string
+  customRoot?: string
+  outputPath: string
+  contents: string
+}): string {
+  const outputPathAbs = resolveSafeGeneratedWritePath(args)
 
   const tempPath = `${outputPathAbs}.tmp-${process.pid}-${randomBytes(6).toString("hex")}`
   writeFileSync(tempPath, args.contents, "utf8")

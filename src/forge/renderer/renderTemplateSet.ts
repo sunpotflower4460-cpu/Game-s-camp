@@ -3,7 +3,7 @@ import { basename, join, relative } from "node:path"
 import {
   resolveTemplateManifestReferencePath,
 } from "../template-registry/loadTemplateRegistry"
-import { writeGeneratedFile } from "../safety/writeGeneratedFile"
+import { resolveSafeGeneratedWritePath, writeGeneratedFile } from "../safety/writeGeneratedFile"
 import type { TemplateRegistryEntry } from "../template-registry/templateRegistry.types"
 
 import type { RenderContext, RenderContextValue } from "./renderContext.types"
@@ -66,6 +66,16 @@ export function renderTemplateSet(args: {
   // generated files with new (possibly broken) content while leaving the rest untouched, and the
   // caller's post-render `unresolvedTokens` check runs too late to prevent that.
   if (unresolved.size === 0) {
+    // Validate every destination before writing any of them: without this, a later file being
+    // rejected (an existing symlink, a hard link, an escaping ancestor) would still leave earlier
+    // files in this same batch already overwritten, producing the same mixed old/new tree this
+    // staging step exists to prevent — just triggered by a safety rejection instead of a bad
+    // token. Real filesystem errors during the write pass itself (disk full, permissions) aren't
+    // covered by this — only the same traversal/symlink/hard-link conditions writeGeneratedFile
+    // already checks.
+    for (const file of staged) {
+      resolveSafeGeneratedWritePath({ generatedRoot, customRoot, outputPath: file.outputPath })
+    }
     for (const file of staged) {
       writeGeneratedFile({ generatedRoot, customRoot, outputPath: file.outputPath, contents: file.contents })
     }

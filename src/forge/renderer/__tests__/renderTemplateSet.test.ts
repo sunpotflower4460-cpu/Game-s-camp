@@ -1,7 +1,16 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { UnsafeGeneratedWritePathError } from "../../safety/writeGeneratedFile"
 import { renderTemplateSet } from "../renderTemplateSet"
 import type { RenderContext } from "../renderContext.types"
 import type { TemplateRegistryEntry } from "../../template-registry/templateRegistry.types"
@@ -113,5 +122,28 @@ describe("renderTemplateSet", () => {
     expect(result.unresolvedTokens).toEqual(["nonexistent.token"])
     expect(readFileSync(join(outputDir, "good.ts"), "utf8")).toBe("export const id = \"test-game\"\n")
     expect(existsSync(join(outputDir, "bad.ts"))).toBe(false)
+  })
+
+  it("writes nothing at all when one destination in the set is unsafe, even if others would be fine", () => {
+    mkdirSync(outputDir, { recursive: true })
+    const outsideTarget = join(workDir, "outside-target.ts")
+    writeFileSync(outsideTarget, "original\n", "utf8")
+    symlinkSync(outsideTarget, join(outputDir, "evil.ts"))
+
+    writeFileSync(join(templatesDir, "good.ts.tpl"), "export const id = \"{{gameId}}\"\n", "utf8")
+    writeFileSync(join(templatesDir, "evil.ts.tpl"), "export const x = 1\n", "utf8")
+
+    expect(() =>
+      renderTemplateSet({
+        templateEntry: templateEntry({ good: "./files/good.ts.tpl", evil: "./files/evil.ts.tpl" }),
+        context: CONTEXT,
+        outputDir,
+        generatedRoot,
+        customRoot,
+      }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+
+    expect(existsSync(join(outputDir, "good.ts"))).toBe(false)
+    expect(readFileSync(outsideTarget, "utf8")).toBe("original\n")
   })
 })

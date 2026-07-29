@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, realpathSync } from "node:fs"
 import { isAbsolute, relative, resolve } from "node:path"
 
 import type {
@@ -107,6 +107,15 @@ function extractBalancedArgs(source: string, openParenIndex: number): string {
 // call site specifically, so only a write whose own arguments reference custom/ is flagged. This
 // is still a text heuristic (not real path/AST analysis), but it catches the common computed-path
 // case — e.g. `writeFileSync(join("custom", "rules.ts"), ...)` — without over-triggering.
+//
+// This scan is a best-effort early warning for an obviously-misbehaving generator, not the actual
+// security boundary — it can always be defeated by import aliasing (`import { writeFile as save }
+// ...`), re-exports, computed member access, or any other renaming a real AST/symbol-resolution
+// pass would be needed to see through. The real boundary is `writeGeneratedFile` /
+// `pruneStaleGeneratedFiles`: they validate the *actual resolved destination path* at the moment
+// of the real filesystem call, so no amount of renaming the call site changes what gets checked.
+// Chasing every possible obfuscation of this text scan has diminishing returns; deliberately not
+// doing so here.
 function hasSuspiciousCustomWrite(source: string): boolean {
   const localConstants = collectLocalStringConstants(source)
   for (const api of WRITE_APIS) {
@@ -155,10 +164,16 @@ export function checkGeneratedCustomSafety(args: {
   }
 
   if (existsSync(generatedRoot) && existsSync(customRoot)) {
+    // Two different lexical paths (e.g. two distinct symlinks) can still resolve to the same real
+    // directory, which the nominal `resolve()`-only comparison below can't see — realpath both
+    // once so equality/nesting reflects where they actually point, not just how they're spelled.
+    const realGeneratedRoot = realpathSync(generatedRoot)
+    const realCustomRoot = realpathSync(customRoot)
+
     // `isInside` uses `path.relative`, which returns "" for two equal paths — neither direction
     // of the nesting check below would ever flag that as "inside" the other, even though two
     // identical roots is the worst-case overlap (every generated write is also a custom write).
-    if (generatedRoot === customRoot) {
+    if (realGeneratedRoot === realCustomRoot) {
       issues.push({
         severity: "error",
         code: "custom_and_generated_identical",
@@ -166,7 +181,7 @@ export function checkGeneratedCustomSafety(args: {
         path: args.customDir,
       })
     } else {
-      if (isInside(generatedRoot, customRoot)) {
+      if (isInside(realGeneratedRoot, realCustomRoot)) {
         issues.push({
           severity: "error",
           code: "custom_path_inside_generated",
@@ -175,7 +190,7 @@ export function checkGeneratedCustomSafety(args: {
         })
       }
 
-      if (isInside(customRoot, generatedRoot)) {
+      if (isInside(realCustomRoot, realGeneratedRoot)) {
         issues.push({
           severity: "error",
           code: "generated_path_inside_custom",
