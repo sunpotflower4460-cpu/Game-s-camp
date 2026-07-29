@@ -38,6 +38,7 @@ export function renderTemplateSet(args: {
   } = args
   const files: RenderedTemplateOutput[] = []
   const unresolved = new Set<string>()
+  const staged: { outputPath: string; contents: string }[] = []
 
   for (const templateFileReference of Object.values(templateEntry.manifest.files)) {
     const sourcePath = resolveTemplateManifestReferencePath(
@@ -48,17 +49,26 @@ export function renderTemplateSet(args: {
     const outputPath = join(outputDir, outputFileName)
     const rendered = renderTemplateFile(sourcePath, context, tokenReplacements)
 
-    writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: rendered.output })
-
     for (const token of rendered.unresolvedTokens) {
       unresolved.add(token)
     }
 
+    staged.push({ outputPath, contents: rendered.output })
     files.push({
       sourcePath: relative(process.cwd(), sourcePath),
       outputPath,
       unresolvedTokens: rendered.unresolvedTokens,
     })
+  }
+
+  // Commit writes only once the whole Template set has rendered with no unresolved tokens
+  // anywhere — otherwise a failure partway through would overwrite some of the last known-good
+  // generated files with new (possibly broken) content while leaving the rest untouched, and the
+  // caller's post-render `unresolvedTokens` check runs too late to prevent that.
+  if (unresolved.size === 0) {
+    for (const file of staged) {
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath: file.outputPath, contents: file.contents })
+    }
   }
 
   return {

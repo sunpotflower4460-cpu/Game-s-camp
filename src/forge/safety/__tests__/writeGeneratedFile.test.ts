@@ -111,6 +111,19 @@ describe("writeGeneratedFile", () => {
     expect(readFileSync(linkedElsewhere, "utf8")).toBe("original contents\n")
   })
 
+  it("rejects writing into generated/ when customRoot is itself a symlink aliasing that location", () => {
+    const aliasedCustomTarget = join(generatedRoot, "aliased-custom")
+    mkdirSync(aliasedCustomTarget, { recursive: true })
+    rmSync(customRoot, { recursive: true, force: true })
+    symlinkSync(aliasedCustomTarget, customRoot, "dir")
+
+    const outputPath = join(aliasedCustomTarget, "rules.ts")
+
+    expect(() =>
+      writeGeneratedFile({ generatedRoot, customRoot, outputPath, contents: "x" }),
+    ).toThrow(UnsafeGeneratedWritePathError)
+  })
+
   it("rejects writing through a destination that is a dangling symlink", () => {
     const outputPath = join(generatedRoot, "gameDefinition.ts")
     symlinkSync(join(workDir, "does-not-exist.ts"), outputPath)

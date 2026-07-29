@@ -47,6 +47,10 @@ export function writeGeneratedFile(args: {
   const generatedRootAbs = resolve(args.generatedRoot)
   const customRootAbs = resolve(args.customRoot ?? "custom")
   const outputPathAbs = resolve(args.outputPath)
+  // If `customRoot` is itself a symlink (e.g. an alias pointing somewhere under `generatedRoot`),
+  // resolving it once up front lets every later real-path check below also catch a write that
+  // lands inside that alias — not just inside `customRoot`'s own nominal path.
+  const realCustomRoot = existsSync(customRootAbs) ? realpathSync(customRootAbs) : customRootAbs
 
   if (isWithin(customRootAbs, outputPathAbs)) {
     throw new UnsafeGeneratedWritePathError(
@@ -77,6 +81,12 @@ export function writeGeneratedFile(args: {
         args.outputPath,
       )
     }
+    if (isWithin(realCustomRoot, realExistingAncestor)) {
+      throw new UnsafeGeneratedWritePathError(
+        `Refusing to create directories through a symlink that resolves into the protected custom/ directory: ${args.outputPath}`,
+        args.outputPath,
+      )
+    }
   }
 
   mkdirSync(outputDir, { recursive: true })
@@ -85,6 +95,12 @@ export function writeGeneratedFile(args: {
   if (!isWithin(generatedRootAbs, realOutputDir)) {
     throw new UnsafeGeneratedWritePathError(
       `Refusing to write through a symlink that escapes generated/: ${args.outputPath}`,
+      args.outputPath,
+    )
+  }
+  if (isWithin(realCustomRoot, realOutputDir)) {
+    throw new UnsafeGeneratedWritePathError(
+      `Refusing to write through an alias that resolves into the protected custom/ directory: ${args.outputPath}`,
       args.outputPath,
     )
   }
