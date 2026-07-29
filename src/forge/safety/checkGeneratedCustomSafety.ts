@@ -15,7 +15,19 @@ function isInside(parent: string, child: string): boolean {
   return relativePath !== "" && !relativePath.startsWith("..") && !isAbsolute(relativePath)
 }
 
-const WRITE_APIS = ["writeFileSync", "mkdirSync", "rmSync", "renameSync"]
+const WRITE_APIS = [
+  "writeFileSync",
+  "mkdirSync",
+  "rmSync",
+  "renameSync",
+  "appendFileSync",
+  "copyFileSync",
+  "cpSync",
+  "unlinkSync",
+  "rmdirSync",
+  "symlinkSync",
+  "linkSync",
+]
 
 function mentionsCustom(text: string): boolean {
   return text.includes("custom/") || text.includes('"custom"') || text.includes("'custom'")
