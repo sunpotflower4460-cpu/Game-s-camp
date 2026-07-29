@@ -1,4 +1,4 @@
-// Resolved configuration summary for 森のぷに相撲. The runtime reads gameDefinition.ts, not this
+// Resolved configuration summary for "森のぷに相撲". The runtime reads gameDefinition.ts, not this
 // file; this exists only as a human-readable record of what the Assembler resolved.
 export const resolvedGameConfig = {
   gameId: "puni-sumo-forest-v1",

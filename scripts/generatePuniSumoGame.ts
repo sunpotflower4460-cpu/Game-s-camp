@@ -3,12 +3,14 @@ import { relative, sep } from "node:path"
 import { createAssemblerPlan } from "../src/forge/assembler/createAssemblerPlan"
 import type { AssemblerPlan } from "../src/forge/assembler/assemblerPlan.types"
 import { validateAssemblerPlan } from "../src/forge/assembler/validateAssemblerPlan"
+import { checkRecipeCompatibility } from "../src/forge/compatibility/checkRecipeCompatibility"
 import { loadKitRegistry, LoadKitRegistryError } from "../src/forge/kit-registry/loadKitRegistry"
 import { validateKitRegistry } from "../src/forge/kit-registry/validateKitRegistry"
 import { gameRecipeSchema } from "../src/forge/recipe/gameRecipe.zod"
 import { renderTemplateSet } from "../src/forge/renderer/renderTemplateSet"
 import type { RenderContextValue } from "../src/forge/renderer/renderContext.types"
 import { validateRenderedOutput } from "../src/forge/renderer/validateRenderedOutput"
+import { pruneStaleGeneratedFiles } from "../src/forge/safety/pruneStaleGeneratedFiles"
 import { writeGeneratedFile } from "../src/forge/safety/writeGeneratedFile"
 import { readJsonFile, ReadJsonFileError } from "../src/forge/shared/readJsonFile"
 import {
@@ -23,7 +25,8 @@ const PLAN_PATH = "plans/puni-sumo.assembler-plan.json"
 const GENERATED_ROOT = "generated"
 const CUSTOM_ROOT = "custom"
 const OUTPUT_DIR = `${GENERATED_ROOT}/games/${GAME_DIR_SLUG}`
-const REPORT_PATH = `${OUTPUT_DIR}/render-report.md`
+const REPORT_FILENAME = "render-report.md"
+const REPORT_PATH = `${OUTPUT_DIR}/${REPORT_FILENAME}`
 const RUNTIME_TYPES_PATH = "src/runtime/phaser/runtimeGameDefinition.types"
 const RUNTIME_SCENES_DIR = "src/runtime/scenes"
 const SCENE_KEYS = {
@@ -105,6 +108,22 @@ if (!templateEntry) {
   fail(`Template is not registered: ${recipe.template}`)
 }
 
+const expectedFiles = Object.values(templateEntry.manifest.files).map((value) =>
+  value.split("/").at(-1)?.replace(/\.tpl$/, ""),
+)
+if (expectedFiles.some((value) => !value)) {
+  fail(`Template file mapping is invalid: ${templateEntry.manifestPath}`)
+}
+const expectedFileNames = expectedFiles as string[]
+const duplicateOutputNames = [
+  ...new Set(expectedFileNames.filter((name, index) => expectedFileNames.indexOf(name) !== index)),
+]
+if (duplicateOutputNames.length > 0) {
+  fail(
+    `Template file mapping produces colliding output filenames, so one logical output would silently overwrite another: ${duplicateOutputNames.join(", ")} (${templateEntry.manifestPath})`,
+  )
+}
+
 let kitRegistry
 try {
   kitRegistry = loadKitRegistry("kits")
@@ -120,6 +139,17 @@ if (!kitRegistryValidation.ok) {
   for (const errorMessage of kitRegistryValidation.errors) {
     console.error(`[fail] GeneratePuniSumoGame: ${errorMessage}`)
   }
+  process.exit(1)
+}
+
+const compatibility = checkRecipeCompatibility(recipe, kitRegistry)
+const compatibilityErrors = compatibility.issues.filter((issue) => issue.severity === "error")
+for (const issue of compatibility.issues) {
+  const prefix = issue.severity === "error" ? "[fail]" : "[warn]"
+  const printer = issue.severity === "error" ? console.error : console.warn
+  printer(`${prefix} GeneratePuniSumoGame: ${issue.code}: ${issue.message}`)
+}
+if (compatibilityErrors.length > 0) {
   process.exit(1)
 }
 
@@ -204,16 +234,9 @@ const renderResult = renderTemplateSet({
   tokenReplacements,
 })
 
-const expectedFiles = Object.values(templateEntry.manifest.files).map((value) =>
-  value.split("/").at(-1)?.replace(/\.tpl$/, ""),
-)
-if (expectedFiles.some((value) => !value)) {
-  fail(`Template file mapping is invalid: ${templateEntry.manifestPath}`)
-}
-
 const outputValidation = validateRenderedOutput({
   outputDir: OUTPUT_DIR,
-  expectedFiles: expectedFiles as string[],
+  expectedFiles: expectedFileNames,
 })
 
 for (const issue of outputValidation.issues) {
@@ -227,6 +250,16 @@ if (renderResult.unresolvedTokens.length > 0) {
 }
 if (!outputValidation.ok) {
   process.exit(1)
+}
+
+const prunedFiles = pruneStaleGeneratedFiles({
+  generatedRoot: GENERATED_ROOT,
+  customRoot: CUSTOM_ROOT,
+  outputDir: OUTPUT_DIR,
+  expectedFileNames: [...expectedFileNames, REPORT_FILENAME],
+})
+for (const prunedPath of prunedFiles) {
+  console.log(`[ok] GeneratePuniSumoGame: removed stale ${prunedPath}`)
 }
 
 const report = [
