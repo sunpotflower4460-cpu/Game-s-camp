@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 import { RUNTIME_STATUS_EVENT, type GeneratedGameDefinition } from "../phaser/runtimeGameDefinition.types"
+import { MiniActionBaseScene } from "./MiniActionBaseScene"
 
 /**
  * Generic mini-action "game" scene placeholder. Phase 6.0 only proves that the runtime can
@@ -7,15 +8,12 @@ import { RUNTIME_STATUS_EVENT, type GeneratedGameDefinition } from "../phaser/ru
  * (movement, opponent AI, push/collision, ring-out, 60s timer) are implemented in Phase 6.2 by
  * a real generated Scene built on top of this same runtime.
  */
-export class MiniActionGameScene extends Phaser.Scene {
-  private readonly definition: GeneratedGameDefinition
-
+export class MiniActionGameScene extends MiniActionBaseScene {
   constructor(definition: GeneratedGameDefinition) {
-    super(definition.scenes.game)
-    this.definition = definition
+    super(definition.scenes.game, definition)
   }
 
-  create(): void {
+  protected onCreate(): void {
     const { width, height } = this.scale
     this.cameras.main.setBackgroundColor("#26392b")
 

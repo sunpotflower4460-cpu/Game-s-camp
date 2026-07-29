@@ -47,6 +47,13 @@ export type RuntimeSnapshot = {
 /** Custom Phaser game-level event used by scenes to report runtime state transitions. */
 export const RUNTIME_STATUS_EVENT = "forge-runtime:status"
 
+/**
+ * Custom Phaser game-level event a scene emits (on its own `this.game`) when one of its own
+ * lifecycle methods throws. Scoped to the Phaser instance that produced it, unlike a page-wide
+ * `window` error listener, which would also catch unrelated errors from React or other hosts.
+ */
+export const RUNTIME_ERROR_EVENT = "forge-runtime:error"
+
 export function createIdleRuntimeSnapshot(): RuntimeSnapshot {
   return {
     status: "idle",

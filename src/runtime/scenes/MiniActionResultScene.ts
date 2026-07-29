@@ -1,19 +1,17 @@
 import Phaser from "phaser"
 import { RUNTIME_STATUS_EVENT, type GeneratedGameDefinition } from "../phaser/runtimeGameDefinition.types"
+import { MiniActionBaseScene } from "./MiniActionBaseScene"
 
 /**
  * Generic mini-action result scene placeholder. Real WIN/LOSE/DRAW payloads and double-click
  * protection land with actual gameplay in Phase 6.2; this only proves Replay/Title navigation.
  */
-export class MiniActionResultScene extends Phaser.Scene {
-  private readonly definition: GeneratedGameDefinition
-
+export class MiniActionResultScene extends MiniActionBaseScene {
   constructor(definition: GeneratedGameDefinition) {
-    super(definition.scenes.result)
-    this.definition = definition
+    super(definition.scenes.result, definition)
   }
 
-  create(): void {
+  protected onCreate(): void {
     const { width, height } = this.scale
     this.cameras.main.setBackgroundColor("#1c2b1f")
 

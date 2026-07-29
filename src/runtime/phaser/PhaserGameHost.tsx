@@ -4,9 +4,11 @@ import { createPhaserConfig } from "./createPhaserConfig"
 import { createPhaserGame } from "./createPhaserGame"
 import { destroyPhaserGame } from "./destroyPhaserGame"
 import {
+  RUNTIME_ERROR_EVENT,
   RUNTIME_STATUS_EVENT,
   createIdleRuntimeSnapshot,
   type GeneratedGameDefinition,
+  type RuntimeErrorInfo,
   type RuntimeSnapshot,
   type RuntimeStatus,
 } from "./runtimeGameDefinition.types"
@@ -83,26 +85,26 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
     const handleStatus = (status: RuntimeStatus) => {
       updateSnapshot({ status, gameId: definition.gameId, message: statusMessage(status, definition) })
     }
-
-    // Phaser's boot sequence and scene lifecycle callbacks (e.g. `create()`) run
-    // asynchronously/inside Phaser's own render loop, outside the synchronous `try` block below.
-    // An exception thrown there still reaches the browser as an uncaught error, so a scoped
-    // `window` listener is the only reliable place to route those failures into the error state.
-    const handleWindowError = (event: ErrorEvent) => {
+    // Scene lifecycle callbacks (e.g. `create()`) run inside Phaser's own render loop, outside
+    // the synchronous `try` block below. Scenes (via MiniActionBaseScene) catch their own errors
+    // and re-emit them on `this.game.events`, which keeps a failure scoped to this exact Phaser
+    // instance — unlike a page-wide `window` error listener, which would also catch unrelated
+    // errors from React or any other mounted host.
+    const handleSceneError = (error: RuntimeErrorInfo) => {
       updateSnapshot({
         status: "error",
         gameId: definition.gameId,
         message: statusMessage("error", definition),
-        error: { message: event.message, cause: event.error },
+        error,
       })
     }
-    window.addEventListener("error", handleWindowError)
 
     try {
       const config = createPhaserConfig({ parent: container, definition, width, height })
       game = createPhaserGame(config)
       gameRef.current = game
       game.events.on(RUNTIME_STATUS_EVENT, handleStatus)
+      game.events.on(RUNTIME_ERROR_EVENT, handleSceneError)
     } catch (caught) {
       updateSnapshot({
         status: "error",
@@ -114,9 +116,9 @@ function PhaserGameHost({ definition, width, height, onStatusChange }: PhaserGam
 
     return () => {
       cancelled = true
-      window.removeEventListener("error", handleWindowError)
       if (game) {
         game.events.off(RUNTIME_STATUS_EVENT, handleStatus)
+        game.events.off(RUNTIME_ERROR_EVENT, handleSceneError)
       }
       destroyPhaserGame(gameRef.current)
       gameRef.current = null

@@ -1,20 +1,18 @@
 import Phaser from "phaser"
 import { RUNTIME_STATUS_EVENT, type GeneratedGameDefinition } from "../phaser/runtimeGameDefinition.types"
+import { MiniActionBaseScene } from "./MiniActionBaseScene"
 
 /**
  * Generic mini-action title scene. This is intentionally not Puni Sumo gameplay — it only
  * proves the runtime can boot, render a scene driven by a GeneratedGameDefinition, and hand off
  * to the next scene. Real gameplay lands in Phase 6.2.
  */
-export class MiniActionTitleScene extends Phaser.Scene {
-  private readonly definition: GeneratedGameDefinition
-
+export class MiniActionTitleScene extends MiniActionBaseScene {
   constructor(definition: GeneratedGameDefinition) {
-    super(definition.scenes.title)
-    this.definition = definition
+    super(definition.scenes.title, definition)
   }
 
-  create(): void {
+  protected onCreate(): void {
     const { width, height } = this.scale
     this.cameras.main.setBackgroundColor("#1c2b1f")
 

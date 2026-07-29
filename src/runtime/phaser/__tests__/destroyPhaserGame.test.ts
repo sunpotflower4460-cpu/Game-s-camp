@@ -17,4 +17,5 @@ describe("destroyPhaserGame", () => {
     expect(destroy).toHaveBeenCalledTimes(1)
     expect(destroy).toHaveBeenCalledWith(true, false)
   })
+
 })
