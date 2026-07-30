@@ -12,15 +12,17 @@ Game’s Camp / AI Game Forge is an AI-oriented game creation forge (workshop OS
 
 ## Current implementation phase
 
-Phase 6.1 wires real Forge generation output into the Phase 6.0 Phaser runtime.
+Phase 6.2 makes 森のぷに相撲 (Puni Sumo) actually playable.
 
-This is still not a playable game yet. `generated/games/puni-sumo/gameDefinition.ts` is now a
-real, typed `GeneratedGameDefinition` produced from the actual GameRecipe + Assembler Plan +
-Template (not hand-authored), and the app boots the Phase 6.0 `PhaserGameHost` from that
-generated output instead of a placeholder. Actual Puni Sumo gameplay (movement, opponent AI,
-push/collision, ring-out, timer, win/lose) is still not included — that is Phase 6.2, now that
-every Kit ID a real game needs (including a new `opponentController` slot and
-`controller.puniOpponentAI.v1` Kit) resolves through the same pipeline.
+Drag your Puni to push the opponent out of the circular ring within 60 seconds; if time runs
+out, whoever is closer to the center wins (a near-tie is a draw). All 7 `template.miniAction.v1`
+Kits (`controller.puniPush.v1`, `controller.puniOpponentAI.v1`, `stage.circularArenaForest.v1`,
+`rule.ringOut.v1`, `camera.isometricSoft.v1`, `ui.roundTimer.v1`, `ui.resultScreen.v1`) are
+promoted from `phase: "skeleton"` to `phase: "runtime-ready"`, with real movement/AI-steering/
+push-physics/ring-out-and-timeout-judging/camera-follow/timer/result-presentation logic —
+resolved generically through `RuntimeKitRegistry` (now parameterized over a genre-specific
+context type), never hardcoded by Kit ID in a Scene. Visual/audio polish and reading `custom/`
+overrides at runtime are still not included — that is Phase 6.3.
 
 ## Non-negotiable Rules
 
@@ -73,8 +75,11 @@ Current limits:
 - Assembler planning maps Recipe + Template slots + Kit manifests into a pre-generation plan under `plans/`.
 - The generator maps template placeholders into a real, runtime-consumable `generated/games/puni-sumo/` output and emits a render report.
 - Optional missing Kits are reported as warnings.
-- Kit implementations in `src/kits/` are runtime-neutral skeletons only (including the new `controller.puniOpponentAI.v1` — no Kit is promoted to runtime-ready until Phase 6.2).
-- Generated files are consumed by the Phase 6.0 runtime, but no Kit yet implements actual gameplay behind them.
+- All 7 `template.miniAction.v1` Kit implementations in `src/kits/` are `phase: "runtime-ready"`
+  as of Phase 6.2, each exporting a runtime adapter factory registered by
+  `src/runtime/scenes/registerMiniActionRuntimeKits.ts`.
+- Generated files are consumed by the Phase 6.0 runtime, and every required Kit now implements
+  real gameplay behind it (Phase 6.2).
 
 ## Assembler Plan + Generation
 
@@ -99,8 +104,10 @@ This creates:
 
 Current limits:
 
-- The generated Scenes are still the Phase 6.0 generic placeholders (Title → Game → Result);
-  no Puni Sumo-specific gameplay is wired in yet — that's Phase 6.2.
+- The generated Scenes (`TitleScene`/`GameScene`/`ResultScene`) are still thin wrappers around
+  the shared `src/runtime/scenes/MiniAction*Scene` runtime classes, which is where the actual
+  Puni Sumo gameplay lives (Phase 6.2) — kept generic to the `mini_action` genre rather than
+  hand-authored per game, per the Kit-first/Recipe-first architecture.
 - `custom/` output generation is still deferred (Phase 6.3); `custom/` may only be read, never
   written, by generator or runtime code.
 
@@ -123,42 +130,55 @@ src/runtime/phaser/
   runtimeGameDefinition.types.ts  GeneratedGameDefinition + RuntimeStatus types
   mergeGameOverrides.ts     Kit defaults -> Recipe tuning -> custom overrides merge order
 src/runtime/scenes/
-  MiniActionTitleScene.ts
-  MiniActionGameScene.ts
-  MiniActionResultScene.ts
+  MiniActionTitleScene.ts             mute toggle, start-gesture audio-context resume
+  MiniActionGameScene.ts              countdown, physics actors, timer, ring-out/timeout judging
+  MiniActionResultScene.ts            navigation chrome around the resultUi Kit's WIN/LOSE/DRAW
+  miniActionKitContext.types.ts       MiniActionGameKitContext / MiniActionResultKitContext
+  miniActionTuning.ts                 getTuningNumber() helper
+  miniActionDebugHook.ts              VITE_E2E-gated window.__miniActionE2E debug API
+  registerMiniActionRuntimeKits.ts    kitId -> runtime adapter factory tables (no per-Kit switch)
+src/kits/shared/
+  miniActionPhysics.ts   pure, unit-tested physics/steering math (drag vector, decay, push
+                          impulse, ring-out check, timeout judging, chase-with-edge-avoidance)
 ```
 
-These scenes are intentionally generic placeholders (Title → Game → Result) and do not yet
-contain Puni Sumo gameplay. `RuntimeKitRegistry` resolution, `mergeGameOverrides`,
-`destroyPhaserGame`, and `createPhaserConfig` are covered by Vitest unit tests under
-`src/runtime/phaser/__tests__/`. The `canvas` devDependency is required so that importing
-`phaser` itself (which feature-detects a 2D canvas context at module load time) does not throw
-under Vitest's `jsdom` environment; it is test-only and is not part of the production bundle.
+`RuntimeKitRegistry` is generic over a genre-specific context type
+(`RuntimeKitRegistry<TContext>`); `MiniActionGameScene`/`MiniActionResultScene` resolve each Kit
+ID from `definition.slots` against it and call the resulting adapter's `onCreate`/`onMount`/
+`onUpdate`/`onDispose` — no Scene branches on which Kit ID a slot holds. `RuntimeKitRegistry`
+resolution, `mergeGameOverrides`, `destroyPhaserGame`, `createPhaserConfig`, the pure physics
+functions, and the pure-logic Kits (`rule.ringOut.v1`, `controller.puniOpponentAI.v1`, via a fake
+context) are covered by Vitest unit tests. The scene-touching Kits
+(`controller.puniPush.v1`, `stage.circularArenaForest.v1`, `camera.isometricSoft.v1`,
+`ui.roundTimer.v1`, `ui.resultScreen.v1`) and the Scenes themselves need a real, booted Phaser
+instance to test meaningfully — this project defers that to manual browser verification now and
+Phase 6.4 Playwright automation, the same split Phase 6.0/6.1 used for other Phaser-boot-dependent
+checks. The `canvas` devDependency is required so that importing `phaser` itself (which
+feature-detects a 2D canvas context at module load time) does not throw under Vitest's `jsdom`
+environment; it is test-only and is not part of the production bundle.
 
-As of Phase 6.1, `PreviewShell.tsx` mounts `PhaserGameHost` with
-`generated/games/puni-sumo/gameDefinition.ts` — real generator output — instead of a
-hand-authored placeholder. Full end-to-end boot verification (Title → Start → Playing → Finish →
-Result → Replay, on both a desktop viewport and a 390×844 mobile viewport, with exactly one
-`<canvas>` at all times and no page errors) was confirmed manually against the Vite dev server;
-automating it with Playwright is Phase 6.4 scope.
+Full end-to-end play (Title → Start → Countdown → real drag/AI/physics/timer/ring-out or
+timeout → Result → Replay/Back to Title, on a 390×844 mobile viewport, with exactly one
+`<canvas>` at all times and no console/page errors) was confirmed manually against the Vite dev
+server, including natural (non-forced) round resolution; automating it with Playwright is Phase
+6.4 scope. The `VITE_E2E`-gated debug hook (`window.__miniActionE2E`) exists now so that
+automation has a deterministic seed/shortened-timer/forced-result/actor-position surface to
+drive, without any always-on debug API in a production build.
 
 ## Current Phase
-Phase 6.1: Forge-to-Runtime Generation.
+Phase 6.2: Playable Puni Sumo.
 Allowed in this phase:
-- generator changes that make `generated/games/puni-sumo/` runtime-consumable
-- a new required `opponentController` Template slot and a tightened `playerController` slot
-- a new reusable Kit, `controller.puniOpponentAI.v1` (manifest + registry + skeleton only)
-- a common safe writer for generated output (path traversal / absolute / symlink / `custom/`
-  rejection), replacing ad hoc `writeFileSync` calls
-- generic script discovery for the generated/custom safety check, instead of a hardcoded list
-- adding `generated/` and `custom/` to the TypeScript project graph
+- promoting all 7 `template.miniAction.v1` Kits to `phase: "runtime-ready"` with real gameplay
+- a genre-specific runtime Kit context + a generic `RuntimeKitRegistry<TContext>`
+- real countdown/physics/movement/AI/push/ring-out/timeout/timer/result gameplay in the Scenes
+- pure, unit-tested physics/steering math extracted into `src/kits/shared/miniActionPhysics.ts`
+- a `VITE_E2E`-gated debug hook for future Playwright determinism
 Not allowed in this phase:
 - hand-editing `generated/`
 - writing to `custom/` from runtime or generator code
-- promoting any Kit (including the new one) out of `phase: "skeleton"`, or any actual Puni Sumo
-  gameplay (movement, AI, push, ring-out, timer, win/lose) — that's Phase 6.2
 - visual polish, procedural art, or audio (Phase 6.3)
-- Playwright e2e tests (Phase 6.4)
+- reading `custom/` overrides at runtime (also Phase 6.3)
+- Playwright e2e automation itself (Phase 6.4)
 - unrelated dependency upgrades
 
 ## Generated JSON Schemas
@@ -175,7 +195,7 @@ npm run generate:schemas
 
 CI will fail if `schemas/` is out of sync with the source.
 
-## Phase 6.1 verification checklist
+## Phase 6.2 verification checklist
 
 Run the following commands and confirm all succeed:
 

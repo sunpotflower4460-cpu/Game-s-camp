@@ -32,9 +32,10 @@ As of Phase 5.5, GameRecipe/KitManifest/TemplateManifest schema validation, Kit/
 Registry loading, recipe compatibility checks, Assembler Plan generation, safe dry-run
 rendering, and the protected `custom/` layer are executable via CLI.
 
-Phase 6.0 adds the first piece of "Build / Test" from the diagram above: a Phaser runtime
+Phase 6.0 added the first piece of "Build / Test" from the diagram above: a Phaser runtime
 foundation (`src/runtime/phaser/`, `src/runtime/scenes/`) that can mount, run, and destroy a
 Phaser `Game` inside React, plus a `RuntimeKitRegistry` that resolves Kit IDs to runtime
-adapters. It does not yet consume real `generated/` output (Phase 6.1) or run actual Puni Sumo
-gameplay (Phase 6.2) — it proves the mount/boot/destroy pipeline with generic placeholder
-scenes and a Vitest smoke test.
+adapters. At that point it did not yet consume real `generated/` output or run actual Puni Sumo
+gameplay — it proved the mount/boot/destroy pipeline with generic placeholder scenes and a
+Vitest smoke test. Phase 6.1 wired in real generated output, and Phase 6.2 made the gameplay
+itself real (see `docs/future-directory-layout.md`).

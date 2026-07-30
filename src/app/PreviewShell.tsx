@@ -67,7 +67,7 @@ function PreviewShell() {
           </li>
           <li>
             <span className="slot-label">Playable Puni Sumo gameplay</span>
-            <span className="slot-status">— not yet (Phase 6.2)</span>
+            <span className="slot-status">— available (Phase 6.2)</span>
           </li>
         </ul>
       </div>

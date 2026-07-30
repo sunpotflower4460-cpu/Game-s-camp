@@ -52,9 +52,11 @@ slot (`requiresProvides: ["opponentAI"]`). Following the Missing Kit Flow
 - category: `controller`
 - provides: `["opponentAI"]`
 - reusable: yes — any mini-action game with a rival/opponent actor can reuse it
-- Phase 6.1 adds only the manifest, registry entry, and a runtime-neutral skeleton
-  (`src/kits/controllers/puniOpponentAI/`, `phase: "skeleton"`); Phase 6.2 promotes it to a real
-  runtime adapter with actual chase/edge-avoidance behavior.
+- Phase 6.1 added only the manifest, registry entry, and a runtime-neutral skeleton
+  (`src/kits/controllers/puniOpponentAI/`, `phase: "skeleton"`); Phase 6.2 promoted it to
+  `phase: "runtime-ready"` with real chase-toward-player + edge-avoidance-near-ring-boundary
+  steering, a periodic wobble, reaction-delay resampling, and a deterministic seed under the
+  `VITE_E2E` debug hook.
 
 `playerController` was tightened at the same time to `requiresProvides: ["playerMovement", "pushForce"]`,
 which `controller.puniPush.v1` already satisfies.

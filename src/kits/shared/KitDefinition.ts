@@ -1,11 +1,11 @@
-import type { KitContext } from "./KitContext"
+import type { KitContext, KitPhase } from "./KitContext"
 import type { KitLifecycleHooks } from "./KitLifecycle"
 
 export type KitDefinition<TTunables extends Record<string, unknown>> = {
   kitId: string
   name: string
   context: KitContext
-  phase: "skeleton"
+  phase: KitPhase
   defaults: TTunables
   lifecycle: KitLifecycleHooks
 }
@@ -13,6 +13,6 @@ export type KitDefinition<TTunables extends Record<string, unknown>> = {
 export type KitFixtureMetadata = {
   kitId: string
   fixtureId: string
-  phase: "skeleton"
+  phase: KitPhase
   notes?: string
 }
