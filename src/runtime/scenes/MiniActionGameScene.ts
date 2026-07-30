@@ -16,7 +16,12 @@ import type {
   MiniActionOutcome,
 } from "./miniActionKitContext.types"
 import { clearMiniActionForcedResult, getMiniActionDebugOverride, isMiniActionE2EEnabled } from "./miniActionDebugHook"
-import { computeDecayedVelocity, computePushImpulse, type Vector2 } from "../../kits/shared/miniActionPhysics"
+import {
+  computeClosingSpeed,
+  computeDecayedVelocity,
+  computePushImpulse,
+  type Vector2,
+} from "../../kits/shared/miniActionPhysics"
 import { getTuningNumber } from "./miniActionTuning"
 import { puniPushControllerDefaults } from "../../kits/controllers/puniPush/PuniPushController"
 
@@ -278,13 +283,26 @@ export class MiniActionGameScene extends MiniActionBaseScene {
     const axisLength = Math.sqrt(axis.x * axis.x + axis.y * axis.y) || 1
     const axisNorm = { x: axis.x / axisLength, y: axis.y / axisLength }
 
-    const relativeVelocity = {
-      x: player.body.velocity.x - opponent.body.velocity.x,
-      y: player.body.velocity.y - opponent.body.velocity.y,
+    // Arcade Physics resolves overlap (position separation + bounce) before invoking this
+    // collide callback, so `body.velocity` here already reflects the *post-bounce* outcome —
+    // reading it would make an approaching pair look like they're separating. The velocity we
+    // actually applied this tick (controller input + decaying push, before Arcade touched
+    // anything) is what "closing speed" needs to be measured against instead.
+    const playerAppliedVelocity = {
+      x: player.controllerVelocity.x + player.pushVelocity.x,
+      y: player.controllerVelocity.y + player.pushVelocity.y,
     }
-    // Positive when the two actors are closing the distance between them along the axis
-    // connecting their centers — moving apart already needs no extra push.
-    const closingSpeed = -(relativeVelocity.x * axisNorm.x + relativeVelocity.y * axisNorm.y)
+    const opponentAppliedVelocity = {
+      x: opponent.controllerVelocity.x + opponent.pushVelocity.x,
+      y: opponent.controllerVelocity.y + opponent.pushVelocity.y,
+    }
+    const relativeVelocity = {
+      x: playerAppliedVelocity.x - opponentAppliedVelocity.x,
+      y: playerAppliedVelocity.y - opponentAppliedVelocity.y,
+    }
+    // axisNorm points from player toward opponent. Positive when the two actors are closing the
+    // distance between them along that axis — moving apart already needs no extra push.
+    const closingSpeed = computeClosingSpeed(relativeVelocity, axisNorm)
     if (closingSpeed <= 0) {
       return
     }

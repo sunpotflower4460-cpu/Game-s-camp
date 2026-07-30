@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 import {
   clampVectorLength,
   computeChaseSteering,
+  computeClosingSpeed,
   computeDecayedVelocity,
   computeDragMovementVector,
+  computeFollowPosition,
   computePushImpulse,
   distanceFromCenter,
   isBeyondRingBounds,
@@ -51,6 +53,12 @@ describe("computeDecayedVelocity", () => {
   it("never overshoots into negative retained velocity", () => {
     const result = computeDecayedVelocity({ x: 100, y: 0 }, 1, 1000)
     expect(result.x).toBe(0)
+  })
+
+  it("matches equivalent split and combined deltas (frame-rate independence)", () => {
+    const combined = computeDecayedVelocity({ x: 100, y: 0 }, 0.01, 32)
+    const split = computeDecayedVelocity(computeDecayedVelocity({ x: 100, y: 0 }, 0.01, 16), 0.01, 16)
+    expect(combined.x).toBeCloseTo(split.x, 10)
   })
 })
 
@@ -179,5 +187,56 @@ describe("computeChaseSteering", () => {
       wobbleStrength: 0.1,
     }
     expect(computeChaseSteering(args)).toEqual(computeChaseSteering(args))
+  })
+})
+
+describe("computeClosingSpeed", () => {
+  it("is positive when the actors are approaching each other along the axis", () => {
+    // axisNorm points from player toward opponent (+x); player moving toward opponent at (5,0)
+    // relative to a stationary opponent is the textbook "pushing into them" case.
+    const relativeVelocity = { x: 5, y: 0 }
+    const axisNorm = { x: 1, y: 0 }
+    expect(computeClosingSpeed(relativeVelocity, axisNorm)).toBeGreaterThan(0)
+  })
+
+  it("is negative when the actors are separating along the axis", () => {
+    const relativeVelocity = { x: -5, y: 0 }
+    const axisNorm = { x: 1, y: 0 }
+    expect(computeClosingSpeed(relativeVelocity, axisNorm)).toBeLessThan(0)
+  })
+
+  it("is zero when the relative velocity is perpendicular to the axis", () => {
+    const relativeVelocity = { x: 0, y: 5 }
+    const axisNorm = { x: 1, y: 0 }
+    expect(computeClosingSpeed(relativeVelocity, axisNorm)).toBeCloseTo(0, 10)
+  })
+})
+
+describe("computeFollowPosition", () => {
+  it("moves toward the target without overshooting", () => {
+    const result = computeFollowPosition({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.14, 16.67)
+    expect(result.x).toBeGreaterThan(0)
+    expect(result.x).toBeLessThan(100)
+  })
+
+  it("returns the current position unchanged when already at the target", () => {
+    expect(computeFollowPosition({ x: 50, y: 50 }, { x: 50, y: 50 }, 0.14, 16.67)).toEqual({ x: 50, y: 50 })
+  })
+
+  it("follows faster (covers more ground per real millisecond) over a longer delta", () => {
+    const shortDelta = computeFollowPosition({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.14, 16.67)
+    const longDelta = computeFollowPosition({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.14, 33.34)
+    expect(longDelta.x).toBeGreaterThan(shortDelta.x)
+  })
+
+  it("matches equivalent split and combined deltas (frame-rate independence)", () => {
+    const combined = computeFollowPosition({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.14, 33.34)
+    const split = computeFollowPosition(
+      computeFollowPosition({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.14, 16.67),
+      { x: 100, y: 0 },
+      0.14,
+      16.67,
+    )
+    expect(combined.x).toBeCloseTo(split.x, 6)
   })
 })

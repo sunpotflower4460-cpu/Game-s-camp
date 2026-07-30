@@ -102,6 +102,10 @@ export function createPuniPushControllerRuntimeAdapter(context: MiniActionGameKi
       scene.input.on(Phaser.Input.Events.POINTER_DOWN, handlePointerDown)
       scene.input.on(Phaser.Input.Events.POINTER_MOVE, handlePointerMove)
       scene.input.on(Phaser.Input.Events.POINTER_UP, handlePointerUp)
+      // A drag released outside the canvas fires POINTER_UP_OUTSIDE instead of POINTER_UP —
+      // without also handling it, activePointerId would never clear and drag control would be
+      // stuck for the rest of the round.
+      scene.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, handlePointerUp)
 
       const keyboard = scene.input.keyboard
       if (keyboard) {
@@ -133,6 +137,7 @@ export function createPuniPushControllerRuntimeAdapter(context: MiniActionGameKi
       scene.input.off(Phaser.Input.Events.POINTER_DOWN, handlePointerDown)
       scene.input.off(Phaser.Input.Events.POINTER_MOVE, handlePointerMove)
       scene.input.off(Phaser.Input.Events.POINTER_UP, handlePointerUp)
+      scene.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, handlePointerUp)
     },
   }
 }

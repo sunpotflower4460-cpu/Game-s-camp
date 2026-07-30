@@ -4,7 +4,7 @@ import type { KitLifecycleHooks } from "../../shared/KitLifecycle"
 import type { RuntimeKitAdapter } from "../../../runtime/phaser/runtimeKit.types"
 import type { MiniActionGameKitContext } from "../../../runtime/scenes/miniActionKitContext.types"
 import { getTuningNumber } from "../../../runtime/scenes/miniActionTuning"
-import type { Vector2 } from "../../shared/miniActionPhysics"
+import { computeFollowPosition, type Vector2 } from "../../shared/miniActionPhysics"
 
 const KIT_ID = "camera.isometricSoft.v1"
 
@@ -50,7 +50,7 @@ export function createIsometricSoftCameraRuntimeAdapter(context: MiniActionGameK
       current = arena ? { ...arena.center } : { x: context.scene.scale.width / 2, y: context.scene.scale.height / 2 }
       context.scene.cameras.main.centerOn(current.x, current.y)
     },
-    onUpdate: () => {
+    onUpdate: (deltaMs) => {
       if (!current) {
         return
       }
@@ -59,10 +59,7 @@ export function createIsometricSoftCameraRuntimeAdapter(context: MiniActionGameK
       const target = { x: (player.x + opponent.x) / 2, y: (player.y + opponent.y) / 2 }
       const lerp = getTuningNumber(context.tuning, "followLerp", isometricSoftCameraDefaults.followLerp)
 
-      current = {
-        x: current.x + (target.x - current.x) * lerp,
-        y: current.y + (target.y - current.y) * lerp,
-      }
+      current = computeFollowPosition(current, target, lerp, deltaMs)
       context.scene.cameras.main.centerOn(current.x, current.y)
     },
   }

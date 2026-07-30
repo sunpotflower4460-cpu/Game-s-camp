@@ -31,13 +31,14 @@ export function computeDragMovementVector(
 }
 
 /**
- * Decays a velocity toward zero after input release, instead of an abrupt stop — a fixed
- * fraction of the remaining velocity is removed per millisecond, so higher `decayPerMs` values
- * settle to zero faster while staying frame-rate independent (using `deltaMs` rather than a
- * fixed per-frame multiplier).
+ * Decays a velocity toward zero after input release, instead of an abrupt stop. `decayPerMs` is
+ * the fraction of velocity removed per millisecond, compounded (not applied as a single linear
+ * multiplier) so that calling this once for a combined `deltaMs` produces the same result as
+ * calling it repeatedly for smaller steps that sum to the same total — i.e. genuinely frame-rate
+ * independent, not just approximately so at typical frame times.
  */
 export function computeDecayedVelocity(current: Vector2, decayPerMs: number, deltaMs: number): Vector2 {
-  const retained = Math.max(1 - decayPerMs * deltaMs, 0)
+  const retained = Math.pow(Math.max(1 - decayPerMs, 0), deltaMs)
   return { x: current.x * retained, y: current.y * retained }
 }
 
@@ -66,6 +67,29 @@ export function computePushImpulse(args: {
 }): Vector2 {
   const raw = { x: args.relativeVelocity.x * args.pushPower, y: args.relativeVelocity.y * args.pushPower }
   return clampVectorLength(raw, args.maxImpulse)
+}
+
+/**
+ * Moves `current` toward `target` by a soft-follow fraction of the remaining distance, compounded
+ * over `deltaMs` the same way `computeDecayedVelocity` compounds decay — so the camera's
+ * `followLerp` produces the same on-screen speed regardless of frame rate, instead of just
+ * applying `lerp` once per call (which would follow faster on higher-FPS devices).
+ */
+export function computeFollowPosition(current: Vector2, target: Vector2, lerp: number, deltaMs: number): Vector2 {
+  const clampedLerp = Math.min(Math.max(lerp, 0), 1)
+  const factor = 1 - Math.pow(1 - clampedLerp, deltaMs / 16.67)
+  return { x: current.x + (target.x - current.x) * factor, y: current.y + (target.y - current.y) * factor }
+}
+
+/**
+ * The rate at which two actors are closing the distance between them, projected onto the axis
+ * connecting their centers (`axisNorm`, pointing from `self` toward `other`): positive while
+ * approaching each other along that axis, negative or zero while separating or moving parallel.
+ * Kept as a small named function (rather than inlined at the call site) after a sign inversion
+ * here once made the push-on-collision impulse silently never fire on genuine collisions.
+ */
+export function computeClosingSpeed(relativeVelocity: Vector2, axisNorm: Vector2): number {
+  return relativeVelocity.x * axisNorm.x + relativeVelocity.y * axisNorm.y
 }
 
 /**

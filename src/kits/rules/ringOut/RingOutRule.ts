@@ -10,13 +10,14 @@ const KIT_ID = "rule.ringOut.v1"
 
 export type RingOutRuleTunables = {
   ringMargin: number
+  roundTimeSec: number
 }
 
 export const ringOutRuleDefaults: RingOutRuleTunables = {
   ringMargin: 0,
+  roundTimeSec: 60,
 }
 
-const DEFAULT_ROUND_TIME_SEC = 60
 const DRAW_DISTANCE_THRESHOLD_PX = 12
 
 export function createRingOutRuleKitDefinition(): KitDefinition<RingOutRuleTunables> {
@@ -85,7 +86,7 @@ export function createRingOutRuleRuntimeAdapter(context: MiniActionGameKitContex
         return
       }
 
-      const roundTimeSec = getTuningNumber(context.tuning, "roundTimeSec", DEFAULT_ROUND_TIME_SEC)
+      const roundTimeSec = getTuningNumber(context.tuning, "roundTimeSec", ringOutRuleDefaults.roundTimeSec)
       const timerOverrideSec = context.getDebugOverride()?.timerOverrideSec
       const effectiveRoundTimeSec = timerOverrideSec ?? roundTimeSec
       if (context.getElapsedMs() < effectiveRoundTimeSec * 1000) {
