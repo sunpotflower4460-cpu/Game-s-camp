@@ -10,7 +10,15 @@
       "name": "playerController",
       "category": "controller",
       "required": true,
-      "description": "Primary player control kit."
+      "description": "Primary player control kit.",
+      "requiresProvides": ["playerMovement", "pushForce"]
+    },
+    {
+      "name": "opponentController",
+      "category": "controller",
+      "required": true,
+      "description": "Primary opponent or rival controller.",
+      "requiresProvides": ["opponentAI"]
     },
     {
       "name": "mainStage",
@@ -61,13 +69,15 @@
     }
   ],
   "files": {
+    "gameDefinition": "./files/gameDefinition.ts.tpl",
     "gameScene": "./files/GameScene.ts.tpl",
     "titleScene": "./files/TitleScene.ts.tpl",
     "resultScene": "./files/ResultScene.ts.tpl",
     "gameConfig": "./files/gameConfig.ts.tpl"
   },
   "invariants": [
-    "TitleScene, GameScene, and ResultScene placeholders must be present.",
-    "Template slots define assembler wiring points only in this phase."
+    "gameDefinition, TitleScene, GameScene, and ResultScene must be present.",
+    "gameDefinition must satisfy the runtime's GeneratedGameDefinition contract.",
+    "Template slots are resolved to Kit IDs by the Assembler and embedded in gameDefinition."
   ]
 }

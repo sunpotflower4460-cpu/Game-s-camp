@@ -1,11 +1,12 @@
 # Future Directory Layout
 
 This document defines the intended future structure for Game’s Camp / AI Game Forge.
-As of Phase 6.0, GameRecipe/KitManifest/TemplateManifest schemas plus Kit/Template Registry and
+As of Phase 6.1, GameRecipe/KitManifest/TemplateManifest schemas plus Kit/Template Registry and
 recipe compatibility validation exist, runtime-neutral Kit skeletons are available under
-`src/kits/`, mini-action template placeholders are available under `templates/mini-action/files/`,
-safe dry-run generated placeholders exist under `generated/games/puni-sumo/`, and a Phaser
-runtime foundation now exists under `src/runtime/phaser/` and `src/runtime/scenes/`.
+`src/kits/` (including the new `controller.puniOpponentAI.v1`), a Phaser runtime foundation
+exists under `src/runtime/phaser/` and `src/runtime/scenes/`, and `generated/games/puni-sumo/`
+now contains a real, typed `GeneratedGameDefinition` that the runtime consumes directly, produced
+by `npm run generate:game` from the Recipe + Assembler Plan + Template.
 
 ## Target structure
 
@@ -16,6 +17,8 @@ recipes/
 kits/
   controllers/
     puni-push/
+      kit.manifest.json
+    puni-opponent-ai/
       kit.manifest.json
   cameras/
     isometric-soft/
@@ -36,6 +39,7 @@ templates/
     template.manifest.json
     rules.md
     files/
+      gameDefinition.ts.tpl
       GameScene.ts.tpl
       TitleScene.ts.tpl
       ResultScene.ts.tpl
@@ -43,6 +47,7 @@ templates/
 generated/
   games/
     puni-sumo/
+      gameDefinition.ts
       GameScene.ts
       TitleScene.ts
       ResultScene.ts
@@ -64,6 +69,9 @@ src/
       puniPush/
         PuniPushController.ts
         PuniPushController.fixture.ts
+      puniOpponentAI/
+        PuniOpponentAIController.ts
+        PuniOpponentAIController.fixture.ts
     cameras/
       isometricSoft/
         IsometricSoftCamera.ts
@@ -103,6 +111,9 @@ src/
     template-registry/
     compatibility/
     assembler/
+    renderer/
+    safety/
+      writeGeneratedFile.ts
     report/
 ```
 
@@ -130,10 +141,12 @@ If a change should survive regeneration, it belongs in `custom/`, a Kit, a Templ
 These are not playable game outputs.
 They are planning artifacts used before runtime-wired `generated/` output exists.
 
-## Phase 5 generated dry-run
+## Phase 5 generated dry-run (superseded by Phase 6.1)
 
-`generated/games/puni-sumo/` now contains dry-run placeholder outputs rendered from `.tpl` files.
-These are still non-playable and not wired into runtime.
+Phase 5 originally rendered `generated/games/puni-sumo/` as dry-run placeholder output, not
+wired into any runtime. That is no longer the current state — see "Phase 6.1 Forge-to-Runtime
+Generation" below for what `generated/games/puni-sumo/` actually contains and how it's wired
+today. This section is kept only for phase history.
 
 ## Phase 5.5 custom/
 
@@ -150,5 +163,24 @@ placeholder Title/Game/Result scenes). The previous flat skeleton files
 (`GameRuntime.ts`, `SceneHost.ts`, `InputManager.ts`, `AssetManager.ts`, `RuntimeEvents.ts`)
 are consolidated into this contract rather than left as unused dead code.
 
-This runtime does not yet read from `generated/games/puni-sumo/` (Phase 6.1) and does not yet
-run Puni Sumo gameplay (Phase 6.2).
+This runtime did not yet read from `generated/games/puni-sumo/` in Phase 6.0; Phase 6.1 wires
+that up. It does not yet run Puni Sumo gameplay (Phase 6.2).
+
+## Phase 6.1 Forge-to-Runtime Generation
+
+`generated/games/puni-sumo/gameDefinition.ts` is now a real, typed `GeneratedGameDefinition`
+produced by `npm run generate:game` (`scripts/generatePuniSumoGame.ts`) from the Recipe +
+Assembler Plan + Template — not hand-authored, and not a non-functional dry run. The generated
+`TitleScene.ts` / `GameScene.ts` / `ResultScene.ts` are thin wrappers around
+`src/runtime/scenes/MiniAction*Scene`; `gameConfig.ts` is a human-readable resolved-slot summary,
+not consumed by the runtime. `src/app/PreviewShell.tsx` now mounts `PhaserGameHost` with this
+generated definition instead of a hand-authored placeholder.
+
+All generated-file writes go through `src/forge/safety/writeGeneratedFile.ts`, a common safe
+writer that rejects path traversal, absolute-path escape, symlink escape, and any write under
+`custom/` — replacing ad hoc `writeFileSync` calls in generator scripts. `generated/` and
+`custom/` are also now part of the TypeScript project graph, so `tsc -b` catches import errors in
+generated output and shape mismatches in custom overrides.
+
+`src/kits/controllers/puniOpponentAI/` is a new reusable Kit skeleton (still
+`phase: "skeleton"`, not runtime-ready) backing the Template's new `opponentController` slot.

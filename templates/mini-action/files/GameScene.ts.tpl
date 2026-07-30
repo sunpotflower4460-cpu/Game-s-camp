@@ -1,15 +1,8 @@
-export const gameSceneTemplate = {
-  sceneKey: "{{scene.game}}",
-  requiredSlots: {
-    playerController: "{{slot.playerController}}",
-    mainStage: "{{slot.mainStage}}",
-    winLoseRule: "{{slot.winLoseRule}}",
-    resultUi: "{{slot.resultUi}}",
-  },
-  optionalSlots: {
-    mainCamera: "{{slot.mainCamera}}",
-    timerUi: "{{slot.timerUi}}",
-    visualFlavor: "{{slot.visualFlavor}}",
-    impactAudio: "{{slot.impactAudio}}",
-  },
+import { MiniActionGameScene } from "{{import.scenes}}/MiniActionGameScene"
+import { generatedGameDefinition } from "./gameDefinition"
+
+export class {{scene.game}} extends MiniActionGameScene {
+  constructor() {
+    super(generatedGameDefinition)
+  }
 }

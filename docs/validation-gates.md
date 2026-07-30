@@ -39,7 +39,7 @@ Checks that should eventually run through scripts or CI.
 - kit validation succeeds
 - compatibility check succeeds
 - assembler plan generation succeeds
-- dry-run render generation succeeds
+- game generation succeeds and produces a valid `GeneratedGameDefinition`
 - no critical console errors
 
 ### Automated e2e-check
@@ -111,3 +111,37 @@ viewport.
 Full browser-level boot/mount/unmount verification is not yet an automated CI gate; that is
 Phase 6.4 scope. Until then, treat the manually-verified items above as re-checked by a human
 before each Phase 6.x release, not as continuously enforced.
+
+## Phase 6.1 generation safety gate
+
+Phase 6.1 adds machine-checks around the generator itself:
+
+- `npm run generate:game` produces a `generated/games/puni-sumo/gameDefinition.ts` that
+  satisfies the `GeneratedGameDefinition` shape, with no unresolved template placeholders.
+- Every write the generator performs goes through the common safe writer
+  (`src/forge/safety/writeGeneratedFile.ts`), which is unit-tested to reject: writes outside
+  `generated/`, path traversal (`..`), absolute paths that resolve outside `generated/`, symlink
+  escapes, and any write under `custom/`.
+- `check:generated-custom-safety` discovers generator scripts under `scripts/` recursively
+  (`.ts` and `.js`) instead of relying on a hardcoded list, so a renamed, nested, or newly added
+  generator is still covered. Its "does this script write into custom/" scan — and, symmetrically,
+  its "does this script raw-write into generated/ instead of going through `writeGeneratedFile`"
+  scan — are text heuristics (covering literal paths, computed paths, local-variable indirection,
+  and both sync and async fs APIs) meant to catch an obviously-misbehaving generator early — not
+  the actual enforcement boundary, and not immune to import aliasing or other renaming a real AST
+  pass would be needed to see through. The real boundary is
+  `writeGeneratedFile`/`pruneStaleGeneratedFiles`, which validate the actual resolved destination
+  path at the moment of the real filesystem call regardless of how the write was invoked.
+- `generated/` and `custom/` are part of the TypeScript project graph (`tsc -b`), so an import
+  error in generated output or a shape mismatch in a custom override fails typecheck, not just at
+  runtime.
+- Re-running `generate:game` from the same Recipe/Plan/Templates produces an identical
+  `generated/` tree (`git diff --exit-code generated/` stays clean), and `custom/` is untouched,
+  including newly created untracked files, not just modifications to tracked ones
+  (`git diff --exit-code custom/` and `git status --porcelain custom/` both stay clean).
+- `generate:game` re-derives an Assembler Plan from the current Recipe, Kit Registry, and
+  Template Registry and fails with a clear "stale plan" error if the persisted
+  `plans/puni-sumo.assembler-plan.json` assigns different Kits than that fresh recomputation would,
+  instead of silently embedding out-of-date slot assignments.
+- Optional slots the Assembler Plan leaves unassigned (e.g. `timerUi`) are omitted from the
+  generated `slots` object entirely, rather than rendering as an unresolved template placeholder.

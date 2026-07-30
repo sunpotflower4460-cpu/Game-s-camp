@@ -51,6 +51,15 @@ For now, it is a protected filesystem area for future custom adjustments.
 Recipe remains the source of generative intent.  
 Custom files are persistent local adjustments that must not be overwritten by generation.
 
+## Phase 6.1 Forge-to-Runtime Generation
+
+Phase 6.1 replaces the Phase 5 dry-run renderer with a real generator (`npm run generate:game`,
+`scripts/generatePuniSumoGame.ts`) that turns the Recipe + Assembler Plan + Template into a
+typed `GeneratedGameDefinition` (`generated/games/puni-sumo/gameDefinition.ts`) consumed
+directly by the Phase 6.0 Phaser runtime. The Recipe still describes intent only — it now also
+lists `controller.puniOpponentAI.v1` in `requiredKits`, since the Template's new
+`opponentController` slot requires a Kit that provides `opponentAI`.
+
 ## Core fields
 
 - `schemaVersion`: required. Example: `"0.1"`.

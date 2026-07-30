@@ -65,3 +65,13 @@ Missing Kit means:
 1. declare the gap,
 2. propose a Kit or custom route,
 3. keep architecture clean.
+
+## Worked example: controller.puniOpponentAI.v1 (Phase 6.1)
+
+Puni Sumo needs a rival actor. The Kit Registry had no controller providing `opponentAI`, so a
+KitProposal was made (see `docs/kit-contracts.md`) and a new reusable Kit was added — manifest,
+registry entry, and skeleton only, not the runtime behavior itself. The behavior is reusable
+(any mini-action game with a rival actor can use it), has clear inputs/outputs (`provides:
+["opponentAI"]`), and does not depend on one specific scene, so it qualified as a Kit rather than
+a one-off `custom/` addition. Its actual runtime logic is deferred to Phase 6.2, following the
+same "skeleton first, promote to runtime-ready later" pattern as every other Kit in this repo.

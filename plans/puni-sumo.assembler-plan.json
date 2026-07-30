@@ -12,13 +12,29 @@
       "slotName": "playerController",
       "category": "controller",
       "required": true,
-      "requiresProvides": [],
+      "requiresProvides": [
+        "playerMovement",
+        "pushForce"
+      ],
       "assignedKitProvides": [
         "playerMovement",
         "pushForce"
       ],
       "kitId": "controller.puniPush.v1",
       "manifestPath": "kits/controllers/puni-push/kit.manifest.json"
+    },
+    {
+      "slotName": "opponentController",
+      "category": "controller",
+      "required": true,
+      "requiresProvides": [
+        "opponentAI"
+      ],
+      "assignedKitProvides": [
+        "opponentAI"
+      ],
+      "kitId": "controller.puniOpponentAI.v1",
+      "manifestPath": "kits/controllers/puni-opponent-ai/kit.manifest.json"
     },
     {
       "slotName": "mainStage",
@@ -87,7 +103,8 @@
   "unresolvedRequiredSlots": [],
   "notes": [
     "Assignment strategy: first available kit per slot using recipe order (requiredKits first, then optionalKits), matching both slot category and required provides.",
-    "Slot \"playerController\" assigned controller.puniPush.v1 by category \"controller\".",
+    "Slot \"playerController\" assigned controller.puniPush.v1 by category \"controller\" and requires provides [playerMovement, pushForce].",
+    "Slot \"opponentController\" assigned controller.puniOpponentAI.v1 by category \"controller\" and requires provides [opponentAI].",
     "Slot \"mainStage\" assigned stage.circularArenaForest.v1 by category \"stage\".",
     "Slot \"winLoseRule\" assigned rule.ringOut.v1 by category \"rule\".",
     "Slot \"resultUi\" assigned ui.resultScreen.v1 by category \"ui\" and requires provides [resultScreen].",

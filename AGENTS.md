@@ -36,27 +36,37 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 6.0: Runtime Foundation.
+Phase 6.1: Forge-to-Runtime Generation.
 
 Allowed in this phase:
-- `phaser` runtime dependency, exact-pinned (`4.2.1`)
-- mounting a Phaser Canvas inside React (single instance, StrictMode-safe)
-- the runtime contract under `src/runtime/phaser/` and `src/runtime/scenes/`
-  (`PhaserGameHost`, `createPhaserGame`, `createPhaserConfig`, `destroyPhaserGame`,
-  `RuntimeKitRegistry`, `runtimeKit.types`, `runtimeGameDefinition.types`, `mergeGameOverrides`)
-- generic placeholder scenes that prove the Title → Game → Result flow and the
-  `idle | loading | ready | playing | result | error` runtime state machine
-- preparing (not yet consuming from `generated/`) a typed `GeneratedGameDefinition`
-- a minimal Vitest-based runtime smoke test
-- consolidating the old `src/runtime/*.ts` dead skeletons into the new runtime contract
+- generator changes that make `generated/games/puni-sumo/` runtime-consumable: a real,
+  typed `GeneratedGameDefinition` object (`generated/games/puni-sumo/gameDefinition.ts`)
+  produced from the actual Recipe + Assembler Plan + Template, not hand-authored
+- thin generated Scene wrapper files that extend the Phase 6.0
+  `src/runtime/scenes/MiniAction*Scene` classes with the generated definition
+- wiring that generated output into the Phase 6.0 `PhaserGameHost` runtime, replacing the
+  Phase 6.0 hand-authored placeholder definition
+- evolving the Template contract: a new required `opponentController` slot
+  (`requiresProvides: ["opponentAI"]`) and a tightened `playerController` slot
+  (`requiresProvides: ["playerMovement", "pushForce"]`)
+- adding `controller.puniOpponentAI.v1` as a new reusable Kit — manifest, registry
+  registration, and a runtime-neutral **skeleton** implementation only (still
+  `phase: "skeleton"`; runtime-ready promotion is Phase 6.2)
+- a common safe writer for all generated output (path traversal / absolute-path /
+  symlink-escape / `custom/` rejection), with unit tests, replacing ad hoc `writeFileSync`
+  calls in generator scripts
+- making the generated/custom-safety check discover generator scripts generically instead
+  of relying on a hardcoded script list
+- adding `generated/` and `custom/` to the TypeScript project graph so `tsc -b` catches
+  import errors in generated output and shape mismatches in custom overrides
 
 Not allowed in this phase:
 - hand-editing `generated/`
 - writing to `custom/` from runtime or generator code
-- actual Puni Sumo gameplay (player control, opponent AI, push/collision, ring-out,
-  timer, win/lose) — that is Phase 6.2
+- promoting any Kit (including the new `controller.puniOpponentAI.v1`) out of
+  `phase: "skeleton"`, or any actual Puni Sumo gameplay (player control, opponent AI,
+  push/collision, ring-out, timer, win/lose) — that is Phase 6.2
 - visual polish, procedural art, or audio — that is Phase 6.3
-- generator changes that make `generated/games/puni-sumo/` runtime-consumable — that is Phase 6.1
 - complex progression, monetization, or online features
 - App Store / Capacitor packaging
 - unrelated dependency upgrades

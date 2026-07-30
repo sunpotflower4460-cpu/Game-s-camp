@@ -1,5 +1,8 @@
-export const titleSceneTemplate = {
-  sceneKey: "TitleScene",
-  nextSceneKey: "GameScene",
-  titleText: "森のぷに相撲",
+import { MiniActionTitleScene } from "../../../src/runtime/scenes/MiniActionTitleScene"
+import { generatedGameDefinition } from "./gameDefinition"
+
+export class TitleScene extends MiniActionTitleScene {
+  constructor() {
+    super(generatedGameDefinition)
+  }
 }

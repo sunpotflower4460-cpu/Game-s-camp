@@ -94,6 +94,10 @@
         "files": {
           "type": "object",
           "properties": {
+            "gameDefinition": {
+              "type": "string",
+              "minLength": 1
+            },
             "gameScene": {
               "type": "string",
               "minLength": 1
@@ -112,6 +116,7 @@
             }
           },
           "required": [
+            "gameDefinition",
             "gameScene",
             "titleScene",
             "resultScene",
