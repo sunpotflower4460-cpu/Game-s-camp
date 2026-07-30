@@ -145,3 +145,55 @@ Phase 6.1 adds machine-checks around the generator itself:
   instead of silently embedding out-of-date slot assignments.
 - Optional slots the Assembler Plan leaves unassigned (e.g. `timerUi`) are omitted from the
   generated `slots` object entirely, rather than rendering as an unresolved template placeholder.
+
+## Phase 6.2 gameplay gate
+
+Phase 6.2 promotes all 7 `template.miniAction.v1` Kits from `phase: "skeleton"` to
+`phase: "runtime-ready"` and implements real Puni Sumo gameplay. Two different kinds of evidence
+back this gate, split the same way Phase 6.0/6.1 split Phaser-boot-dependent checks:
+
+**Covered by Vitest unit tests**, run in CI on every PR:
+
+- The pure physics/steering math in `src/kits/shared/miniActionPhysics.ts` (drag-to-movement-
+  vector with dead zone and clamped strength, velocity decay, push-impulse clamping, ring-out
+  distance check, timeout winner-by-distance judging, chase-with-edge-avoidance steering) is
+  fully unit-tested in isolation from Phaser/Scene state.
+- `rule.ringOut.v1` and `controller.puniOpponentAI.v1` — the two Kits whose runtime adapters
+  don't touch `context.scene` at all — are unit-tested against a fake, scene-free
+  `MiniActionGameKitContext` (`src/runtime/scenes/__tests__/fakeMiniActionGameKitContext.ts`):
+  ring-out/timeout/draw judging, outcome latching, debug-hook `forceResult`/`timerOverrideSec`
+  handling (including that a forced result is *consumed* once reported, so it doesn't silently
+  re-decide the next Replay round from a stale value), AI chase-toward-target and
+  edge-avoidance-near-boundary steering, reaction-delay resampling, and seeded-PRNG determinism.
+- `registerMiniActionGameKits`/`registerMiniActionResultKits` are asserted to register a runtime
+  adapter for every Kit ID `plans/puni-sumo.assembler-plan.json` actually assigns, so a newly
+  assigned Kit failing to appear in the registration table is a unit-test failure, not a
+  runtime-only surprise.
+
+**Verified manually in a real browser** against the Vite dev server (not yet automated — that is
+exactly what Playwright in Phase 6.4 is for): the full Title → Start → Countdown (3/2/1) →
+Playing → Result → Replay/Back-to-Title loop, on a 390×844 mobile viewport, with no console or
+page errors; real pointer-drag player movement; the opponent AI actually chasing and avoiding the
+ring edge; push-on-collision physics between the two actors; both **natural** round endings
+(ring-out and, via the debug hook's `setTimerOverrideSec`, an unforced timeout resolved by actual
+actor distance-from-center) and the debug hook's `forceResult` path, each rendering the correct
+WIN/LOSE/DRAW headline and reason on the result screen; and — critically — that a *second* round
+after Replay is not silently pre-decided by state left over from the first round (this caught a
+real bug during Phase 6.2 development: `MiniActionGameScene`'s Kit-driven Scene instance is
+reused by Phaser across every `scene.start()`/Replay rather than reconstructed, so `onCreate` must
+explicitly reset every mutable field itself — a class field initializer only ever runs once, at
+first construction, not on every restart).
+
+Kits that touch `context.scene` directly (`controller.puniPush.v1`'s input handling,
+`stage.circularArenaForest.v1`'s ring rendering, `camera.isometricSoft.v1`'s follow, `ui.roundTimer.v1`'s
+HUD text, `ui.resultScreen.v1`'s outcome text) need a real, booted Phaser instance to test
+meaningfully; this project defers that class of check to the same manual-verification-now,
+Playwright-later split as the rest of the Scene/runtime boot behavior, rather than mocking Phaser
+Scene internals per Kit.
+
+The `VITE_E2E`-gated debug hook (`src/runtime/scenes/miniActionDebugHook.ts`,
+`window.__miniActionE2E` — a deterministic AI seed, a shortened round timer, a forced result, and
+actor position overrides) exists specifically so Phase 6.4's Playwright suite can drive
+deterministic rounds instead of waiting out a real 60-second timer or relying on non-deterministic
+AI movement; it is absent from `window` and inert whenever `VITE_E2E` is not `"true"`, so no
+always-on debug surface ships to real players.

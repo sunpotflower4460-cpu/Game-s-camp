@@ -5,17 +5,18 @@ function App() {
     <div className="forge-app">
       <header className="forge-header">
         <h1>Game's Camp / AI Game Forge</h1>
-        <p className="forge-phase">Phase 6.1: Forge-to-Runtime Generation</p>
+        <p className="forge-phase">Phase 6.2: Playable Puni Sumo</p>
       </header>
 
       <main className="forge-main">
         <p className="forge-notice">
-          This is not a playable game yet.
+          Puni Sumo is playable: drag to push, avoid the ring edge, and win the 60-second round.
           <br />
-          This phase boots the Phaser runtime with a real, generated game definition produced
-          from the Recipe, Assembler Plan, and Template — not a hand-authored placeholder.
+          Movement, opponent AI, push physics, ring-out/timeout judging, and the result screen are
+          real Kit implementations wired through the Recipe → Assembler Plan → generated
+          definition → Phaser runtime pipeline, not hand-authored gameplay code.
           <br />
-          Playable Puni Sumo gameplay (Phase 6.2) is not included yet.
+          Visual/audio polish and custom overrides are not included yet (Phase 6.3).
         </p>
 
         <PreviewShell />

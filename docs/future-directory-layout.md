@@ -163,8 +163,8 @@ placeholder Title/Game/Result scenes). The previous flat skeleton files
 (`GameRuntime.ts`, `SceneHost.ts`, `InputManager.ts`, `AssetManager.ts`, `RuntimeEvents.ts`)
 are consolidated into this contract rather than left as unused dead code.
 
-This runtime did not yet read from `generated/games/puni-sumo/` in Phase 6.0; Phase 6.1 wires
-that up. It does not yet run Puni Sumo gameplay (Phase 6.2).
+This runtime did not yet read from `generated/games/puni-sumo/` in Phase 6.0; Phase 6.1 wired
+that up. It now runs real Puni Sumo gameplay too (Phase 6.2) — see below.
 
 ## Phase 6.1 Forge-to-Runtime Generation
 
@@ -183,4 +183,43 @@ writer that rejects path traversal, absolute-path escape, symlink escape, and an
 generated output and shape mismatches in custom overrides.
 
 `src/kits/controllers/puniOpponentAI/` is a new reusable Kit skeleton (still
-`phase: "skeleton"`, not runtime-ready) backing the Template's new `opponentController` slot.
+`phase: "skeleton"`, not runtime-ready) backing the Template's new `opponentController` slot;
+Phase 6.2 promotes it (and every other `template.miniAction.v1` Kit) to `phase: "runtime-ready"`.
+
+## Phase 6.2 Playable Puni Sumo
+
+All 7 `template.miniAction.v1` Kits (`controller.puniPush.v1`, `controller.puniOpponentAI.v1`,
+`stage.circularArenaForest.v1`, `rule.ringOut.v1`, `camera.isometricSoft.v1`, `ui.roundTimer.v1`,
+`ui.resultScreen.v1`) are promoted from `phase: "skeleton"` to `phase: "runtime-ready"`, each now
+exporting a runtime adapter factory (`createXRuntimeAdapter`) alongside its existing design-time
+`createXKitDefinition`. `KitDefinition`/`KitContext`/`KitFixtureMetadata.phase` is now
+`"skeleton" | "runtime-ready"` (`src/kits/shared/KitContext.ts`'s `KitPhase` type), not a fixed
+`"skeleton"` literal.
+
+`RuntimeKitRegistry` (`src/runtime/phaser/RuntimeKitRegistry.ts`) is now generic over a context
+type (`RuntimeKitRegistry<TContext>`), so a Scene can hand its Kits genre-specific access instead
+of nothing. `template.miniAction.v1`'s own context contract lives in
+`src/runtime/scenes/miniActionKitContext.types.ts`: `MiniActionGameKitContext` (actors, arena
+bounds, elapsed time, pause state, outcome reporting, the `VITE_E2E` debug override) for the six
+gameplay slots, and a smaller `MiniActionResultKitContext` (just the settled outcome) for
+`resultUi` — giving the UI Kit no physics access at all makes "a UI Kit must not alter physics"
+true by construction. `src/runtime/scenes/registerMiniActionRuntimeKits.ts` maps each Kit ID to
+its factory in a flat table (plus a slot-processing-order list ensuring `mainStage` sets arena
+bounds before anything reads them) — Scenes iterate `definition.slots` and resolve, never
+branching on a specific Kit ID.
+
+`MiniActionGameScene` now creates two Arcade Physics actors inside the stage Kit's arena, runs a
+3-2-1 countdown, combines each frame's controller-driven velocity with a separately-decaying
+push-impulse velocity from actor-to-actor collisions (computed via pure functions in
+`src/kits/shared/miniActionPhysics.ts`), freezes elapsed round time during countdown/pause/a
+hidden tab, and transitions to `MiniActionResultScene` with the outcome once `rule.ringOut.v1`
+reports one. `MiniActionResultScene` owns generic navigation chrome (Replay/Back-to-Title, a
+double-click guard) around whatever `ui.resultScreen.v1` renders for the outcome it's handed.
+`MiniActionTitleScene` adds a mute toggle and resumes the audio context on the Start gesture,
+ahead of any audio Kit actually playing sound (Phase 6.3).
+
+A `VITE_E2E`-gated debug hook (`src/runtime/scenes/miniActionDebugHook.ts`,
+`window.__miniActionE2E`) exposes a deterministic AI wobble seed, a shortened round timer, a
+forced result (consumed once reported, so it doesn't leak into the next Replay round), and actor
+position overrides — for Phase 6.4's Playwright suite to drive deterministically, absent and
+inert whenever `VITE_E2E` isn't `"true"`.

@@ -73,5 +73,6 @@ KitProposal was made (see `docs/kit-contracts.md`) and a new reusable Kit was ad
 registry entry, and skeleton only, not the runtime behavior itself. The behavior is reusable
 (any mini-action game with a rival actor can use it), has clear inputs/outputs (`provides:
 ["opponentAI"]`), and does not depend on one specific scene, so it qualified as a Kit rather than
-a one-off `custom/` addition. Its actual runtime logic is deferred to Phase 6.2, following the
+a one-off `custom/` addition. Its actual runtime logic followed in Phase 6.2, once its
+`playerController` counterpart and the other five Template slots had real behavior too — the
 same "skeleton first, promote to runtime-ready later" pattern as every other Kit in this repo.

@@ -29,12 +29,13 @@ export class RuntimeKitIdentityMismatchError extends Error {
 /**
  * Resolves Kit IDs (e.g. `controller.puniPush.v1`) to runtime adapters.
  * Generated definitions reference Kits by ID only; the registry is the single place that maps
- * an ID to an actual implementation, so Scenes never need a Kit-ID switch statement.
+ * an ID to an actual implementation, so Scenes never need a Kit-ID switch statement — they just
+ * iterate `definition.slots` and call `resolve(kitId, context)` for each one.
  */
-export class RuntimeKitRegistry {
-  private readonly factories = new Map<string, RuntimeKitFactory>()
+export class RuntimeKitRegistry<TContext = void> {
+  private readonly factories = new Map<string, RuntimeKitFactory<TContext>>()
 
-  register(kitId: string, factory: RuntimeKitFactory): void {
+  register(kitId: string, factory: RuntimeKitFactory<TContext>): void {
     if (this.factories.has(kitId)) {
       throw new Error(`Runtime Kit "${kitId}" is already registered.`)
     }
@@ -45,12 +46,12 @@ export class RuntimeKitRegistry {
     return this.factories.has(kitId)
   }
 
-  resolve(kitId: string): RuntimeKitAdapter {
+  resolve(kitId: string, context: TContext): RuntimeKitAdapter {
     const factory = this.factories.get(kitId)
     if (!factory) {
       throw new RuntimeKitResolutionError(kitId)
     }
-    const adapter = factory()
+    const adapter = factory(context)
     if (adapter.kitId !== kitId) {
       throw new RuntimeKitIdentityMismatchError(kitId, adapter.kitId)
     }
@@ -62,6 +63,6 @@ export class RuntimeKitRegistry {
   }
 }
 
-export function createRuntimeKitRegistry(): RuntimeKitRegistry {
-  return new RuntimeKitRegistry()
+export function createRuntimeKitRegistry<TContext = void>(): RuntimeKitRegistry<TContext> {
+  return new RuntimeKitRegistry<TContext>()
 }

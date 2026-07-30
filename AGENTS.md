@@ -36,37 +36,39 @@ It is an AI-oriented game creation forge.
 
 ## Current Phase
 
-Phase 6.1: Forge-to-Runtime Generation.
+Phase 6.2: Playable Puni Sumo.
 
 Allowed in this phase:
-- generator changes that make `generated/games/puni-sumo/` runtime-consumable: a real,
-  typed `GeneratedGameDefinition` object (`generated/games/puni-sumo/gameDefinition.ts`)
-  produced from the actual Recipe + Assembler Plan + Template, not hand-authored
-- thin generated Scene wrapper files that extend the Phase 6.0
-  `src/runtime/scenes/MiniAction*Scene` classes with the generated definition
-- wiring that generated output into the Phase 6.0 `PhaserGameHost` runtime, replacing the
-  Phase 6.0 hand-authored placeholder definition
-- evolving the Template contract: a new required `opponentController` slot
-  (`requiresProvides: ["opponentAI"]`) and a tightened `playerController` slot
-  (`requiresProvides: ["playerMovement", "pushForce"]`)
-- adding `controller.puniOpponentAI.v1` as a new reusable Kit — manifest, registry
-  registration, and a runtime-neutral **skeleton** implementation only (still
-  `phase: "skeleton"`; runtime-ready promotion is Phase 6.2)
-- a common safe writer for all generated output (path traversal / absolute-path /
-  symlink-escape / `custom/` rejection), with unit tests, replacing ad hoc `writeFileSync`
-  calls in generator scripts
-- making the generated/custom-safety check discover generator scripts generically instead
-  of relying on a hardcoded script list
-- adding `generated/` and `custom/` to the TypeScript project graph so `tsc -b` catches
-  import errors in generated output and shape mismatches in custom overrides
+- promoting all 7 `template.miniAction.v1` Kits from `phase: "skeleton"` to
+  `phase: "runtime-ready"` (`KitDefinition`/`KitContext`/`KitFixtureMetadata.phase` is now
+  `"skeleton" | "runtime-ready"`, not a fixed literal): `controller.puniPush.v1`,
+  `controller.puniOpponentAI.v1`, `stage.circularArenaForest.v1`, `rule.ringOut.v1`,
+  `camera.isometricSoft.v1`, `ui.roundTimer.v1`, `ui.resultScreen.v1`
+- a genre-specific runtime Kit context (`MiniActionGameKitContext`/`MiniActionResultKitContext`
+  in `src/runtime/scenes/miniActionKitContext.types.ts`) that `RuntimeKitRegistry<TContext>`
+  (now generic over a context type) resolves each Kit against, so `MiniActionGameScene`/
+  `MiniActionResultScene` iterate `definition.slots` and never branch on a specific Kit ID
+- real gameplay in `MiniActionGameScene`: countdown, two Arcade-physics actors inside the
+  stage Kit's arena, pointer/touch/mouse drag + keyboard-fallback player movement, opponent AI
+  steering, push-on-collision physics, ring-out/timeout win-lose-draw judging (latched once),
+  a round timer, and pause/tab-visibility handling that freezes elapsed time fairly
+- real navigation/content in `MiniActionResultScene` (WIN/LOSE/DRAW + reason from the
+  `resultUi` Kit, Replay/Back-to-Title with a double-click guard) and `MiniActionTitleScene`
+  (mute toggle, start-gesture audio-context resume)
+- pure, unit-tested physics/steering math extracted into
+  `src/kits/shared/miniActionPhysics.ts` (drag-to-vector, decay, push impulse, ring-out check,
+  timeout judging, chase-with-edge-avoidance steering)
+- a `VITE_E2E`-gated debug hook (`src/runtime/scenes/miniActionDebugHook.ts`) exposing a
+  deterministic AI seed, a shortened round timer, a forced result, and actor position
+  overrides for Phase 6.4 Playwright runs — inert and absent from `window` otherwise
 
 Not allowed in this phase:
 - hand-editing `generated/`
 - writing to `custom/` from runtime or generator code
-- promoting any Kit (including the new `controller.puniOpponentAI.v1`) out of
-  `phase: "skeleton"`, or any actual Puni Sumo gameplay (player control, opponent AI,
-  push/collision, ring-out, timer, win/lose) — that is Phase 6.2
 - visual polish, procedural art, or audio — that is Phase 6.3
+- reading `custom/` overrides at runtime — that is also Phase 6.3
+- Playwright e2e automation itself (the debug hook is added now; using it in an automated
+  suite is Phase 6.4)
 - complex progression, monetization, or online features
 - App Store / Capacitor packaging
 - unrelated dependency upgrades
